@@ -5,13 +5,19 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 
 Route::prefix('auth')->group(function () {
-    Route::post('register', [AuthController::class, 'register']);
-    Route::post('login', [AuthController::class, 'login']);
-    
-    Route::middleware('auth:sanctum')->group(function () {
-        Route::post('logout', [AuthController::class, 'logout']);
-        Route::get('profile', [AuthController::class, 'profile']);
-    });
+    Route::post('/register', [AuthController::class, 'register']);
+    Route::post('/login', [AuthController::class, 'login']);
+    Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+    Route::post('/resend-verification', [AuthController::class, 'resendVerificationEmail']);
+    Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+    Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+});
+
+// Protected routes (requires authentication)
+Route::middleware('auth:sanctum')->prefix('auth')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [AuthController::class, 'profile']);
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 });
 
 
