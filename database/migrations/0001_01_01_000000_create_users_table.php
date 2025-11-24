@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('password');
             $table->enum('role', ['learner', 'instructor', 'admin'])->default('learner');
             $table->text('bio')->nullable();
+            $table->string('api_token', 80)->unique()->nullable()->default(null);
             $table->string('avatar')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();

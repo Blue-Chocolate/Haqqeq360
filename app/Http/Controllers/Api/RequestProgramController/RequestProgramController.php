@@ -34,7 +34,7 @@ class RequestProgramController extends Controller
             'program_name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'requested_date' => 'required|date',
-            'requested_features' => 'nullable|array',
+            'requested_features' => 'nullable|string',
         ]);
 
         $validated['user_id'] = auth()->id();
