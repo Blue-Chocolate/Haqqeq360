@@ -79,3 +79,12 @@ Route::prefix('categories')->group(function () {
     Route::get('/', [CategoryController::class, 'index']); // List categories
     Route::get('/{idOrSlug}', [CategoryController::class, 'show']); // Show category by ID or slug
 });
+
+use App\Http\Controllers\Api\RequestProgramController\RequestProgramController;
+
+
+// API Routes - User can only create and view their requests
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('request-programs', [RequestProgramController::class, 'index']);
+    Route::post('request-programs', [RequestProgramController::class, 'store']);
+});
