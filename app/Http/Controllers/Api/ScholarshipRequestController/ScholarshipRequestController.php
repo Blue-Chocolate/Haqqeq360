@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\ScholarshipRequestController\ScholarshipRequestController;
+namespace App\Http\Controllers\Api\ScholarshipRequestController;
 
 use App\Http\Controllers\Controller;
 use App\Repositories\ScholarshipRequest\ScholarshipRequestRepository;

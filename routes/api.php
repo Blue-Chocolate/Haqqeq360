@@ -103,3 +103,9 @@ use App\Http\Controllers\Api\ContactUsController\ContactUsController;
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('contact-us', [ContactUsController::class, 'store']);
 });
+use App\Http\Controllers\Api\ScholarshipRequestController\ScholarshipRequestController;
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('scholarship-requests', [ScholarshipRequestController::class, 'index']);
+    Route::post('scholarship-requests', [ScholarshipRequestController::class, 'store']);
+});
