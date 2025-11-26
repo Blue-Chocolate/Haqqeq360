@@ -13,6 +13,7 @@ return new class extends Migration {
             $table->text('description');
             $table->dateTime('due_date')->nullable();
             $table->foreignId('course_id')->constrained('courses')->onDelete('cascade');
+            $table->unsignedBigInteger('bootcamp_id')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

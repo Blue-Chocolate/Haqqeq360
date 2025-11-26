@@ -14,4 +14,7 @@ class Bootcamp extends Model {
     protected $fillable = ['title','description','duration_weeks','level','start_date','mode','seats','certificate','instructor_id','cover_image'];
     public function instructor() { return $this->belongsTo(User::class, 'instructor_id'); }
     public function enrollments() { return $this->morphMany(Enrollment::class, 'enrollable'); }
+    public function assignments() {
+    return $this->hasMany(Assignment::class);
+}
 }

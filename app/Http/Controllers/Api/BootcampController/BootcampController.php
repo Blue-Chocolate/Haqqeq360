@@ -11,7 +11,7 @@ use App\Actions\Bootcamps\{
 
 class BootcampController extends Controller
 {
-    public function basicList(Request $request, ListBootcampsBasicAction $action)
+    public function index(Request $request, ListBootcampsBasicAction $action)
     {
         $limit = $request->input('limit', 10);
         return $action->execute($limit);
