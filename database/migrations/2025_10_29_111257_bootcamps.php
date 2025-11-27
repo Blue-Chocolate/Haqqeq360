@@ -15,6 +15,8 @@ return new class extends Migration
             $table->boolean('special')->default(false);
             $table->text('description');
             $table->integer('duration_weeks')->nullable();
+            $table->decimal('price', 10, 2)->default(0);
+            $table->decimal('discounted_price', 10, 2)->nullable();           
             $table->enum('level', ['beginner', 'intermediate', 'advanced'])->default('beginner');
             $table->date('start_date')->nullable();
             $table->enum('mode', ['online', 'hybrid', 'offline'])->default('online');

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->integer('duration_weeks')->nullable();
             $table->integer('duration_days')->nullable();
             $table->decimal('price', 10, 2)->default(0);
+            $table->decimal('discounted_price', 10, 2)->nullable();
             $table->string('currency', 3)->default('SAR');
             $table->string('cover_image_url', 500)->nullable();
             $table->boolean('is_published')->default(false);
