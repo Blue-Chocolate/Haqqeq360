@@ -37,9 +37,11 @@ protected $fillable = [
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
-
-    public function getFilamentName(): string
+// In App\Models\User.php
+public function getNameAttribute(): string
 {
-    return trim(($this->first_name ?? '') . ' ' . ($this->second_name ?? '')) ?: 'Admin';
+    return trim($this->first_name . ' ' . $this->second_name);
 }
+
+
 }
