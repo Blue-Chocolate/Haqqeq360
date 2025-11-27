@@ -24,7 +24,7 @@ return new class extends Migration
             $table->enum('mode', ['online', 'hybrid', 'offline'])->default('online');
             $table->string('cover_image')->nullable();
             $table->enum('status', ['draft', 'published'])->default('draft');
-            $table->foreignId('instructor_id')->constrained('users')->onDelete('cascade');
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes();
         });

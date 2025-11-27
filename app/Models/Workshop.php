@@ -22,6 +22,11 @@ class Workshop extends Model
        'mode',
        'cover_image',
        'status',
-       'instructor_id',
+       'user_id',
    ];
+
+   public function instructor()
+   {
+       return $this->belongsTo(User::class, 'user_id');
+   }
 }

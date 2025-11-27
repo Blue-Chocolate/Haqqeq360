@@ -44,7 +44,7 @@ class WorkshopResource extends Resource
                             ->unique(ignoreRecord: true)
                             ->rules(['alpha_dash']),
 
-                        Forms\Components\Select::make('instructor_id')
+                        Forms\Components\Select::make('user_id')
                             ->label('Instructor')
                             ->relationship('instructor', 'name')
                             ->searchable()
