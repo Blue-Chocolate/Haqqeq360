@@ -54,7 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
 use App\Http\Controllers\Api\BootcampController\BootcampController;
 
 Route::get('bootcamps', [BootcampController::class, 'index']);
-Route::get('bootcamps/{id}', [BootcampController::class, 'show']);
+Route::get('bootcamps/{id}', [BootcampController::class, 'show'])->middleware('role:admin');
 
 use App\Http\Controllers\Api\CourseController\CourseController;
 

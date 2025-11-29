@@ -52,7 +52,7 @@ class BootCampResource extends Resource
 
                 Forms\Components\Section::make('Bootcamp Details')
                     ->schema([
-                        Forms\Components\Select::make('instructor_id')
+                        Forms\Components\Select::make('user_id')
                             ->label('Instructor')
                             ->relationship('instructor', 'name')
                             ->searchable()
@@ -137,7 +137,7 @@ class BootCampResource extends Resource
                     ->weight('bold')
                     ->limit(30),
 
-                Tables\Columns\TextColumn::make('instructor.name')
+                Tables\Columns\TextColumn::make('user.name')
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
