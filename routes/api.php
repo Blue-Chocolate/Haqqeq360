@@ -54,7 +54,7 @@ Route::middleware('auth:sanctum')->group(function () {
 use App\Http\Controllers\Api\BootcampController\BootcampController;
 
 Route::get('bootcamps', [BootcampController::class, 'index']);
-Route::get('bootcamps/{id}', [BootcampController::class, 'show'])->middleware('role:admin');
+Route::get('bootcamps/{id}', [BootcampController::class, 'show']);
 
 use App\Http\Controllers\Api\CourseController\CourseController;
 
@@ -167,3 +167,23 @@ use App\Http\Controllers\Api\TestimonialController\TestimonialController;
 Route::get('/testimonials', [TestimonialController::class, 'index']);
 Route::get('/testimonials/{id}', [TestimonialController::class, 'show']);
 Route::post('/testimonials', [TestimonialController::class, 'store']);
+
+use App\Http\Controllers\Api\AboutPageController\AboutPageController;
+
+
+    
+    // About Pages Routes
+    Route::prefix('about-pages')->group(function () {
+        
+        // GET /api/v1/about-pages
+        // Returns paginated list of published about pages
+        // Query params: per_page (default: 15, max: 100), page (default: 1)
+        Route::get('/', [AboutPageController::class, 'index'])
+            ->name('api.about-pages.index');
+        
+        // GET /api/v1/about-pages/{id}
+        // Returns single about page by ID
+        Route::get('/{id}', [AboutPageController::class, 'show'])
+            ->name('api.about-pages.show')
+            ->where('id', '[0-9]+');
+    });
