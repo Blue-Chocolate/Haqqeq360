@@ -187,3 +187,11 @@ use App\Http\Controllers\Api\AboutPageController\AboutPageController;
             ->name('api.about-pages.show')
             ->where('id', '[0-9]+');
     });
+
+use App\Http\Controllers\Api\WhyChooseFeatureController\WhyChooseFeatureController;
+Route::get ('/why-choose-features', [WhyChooseFeatureController::class, 'index']);
+Route::get ('/why-choose-features/{id}', [WhyChooseFeatureController::class, 'show']);
+
+use App\Http\Controllers\Api\PartnersControllers\PartnersController;
+Route::get('/partners', [PartnersController::class, 'index']);
+Route::get('/partners/{id}', [PartnersController::class, 'show']);
