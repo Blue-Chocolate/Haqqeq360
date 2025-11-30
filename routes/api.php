@@ -192,6 +192,7 @@ use App\Http\Controllers\Api\WhyChooseFeatureController\WhyChooseFeatureControll
 Route::get ('/why-choose-features', [WhyChooseFeatureController::class, 'index']);
 Route::get ('/why-choose-features/{id}', [WhyChooseFeatureController::class, 'show']);
 
-use App\Http\Controllers\Api\PartnersController\PartnersController;
+use App\Http\Controllers\Api\PartnersControllers\PartnersController;
+
 Route::get('/partners', [PartnersController::class, 'index']);
 Route::get('/partners/{id}', [PartnersController::class, 'show']);

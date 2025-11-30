@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers\Api\PartnersController;
+namespace App\Http\Controllers\Api\PartnersControllers;
 
 use App\Http\Controllers\Controller;
 use App\Models\Partner;
