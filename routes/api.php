@@ -203,3 +203,32 @@ use App\Http\Controllers\Api\PartnersControllers\PartnersController;
 
 Route::get('/partners', [PartnersController::class, 'index']);
 Route::get('/partners/{id}', [PartnersController::class, 'show']);
+
+use App\Http\Controllers\Api\TestController\TestController;
+use App\Http\Controllers\Api\TestAttemptController\TestAttemptController;
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    // Test Routes
+    Route::prefix('tests')->group(function () {
+        Route::get('/', [TestController::class, 'index']); // Get all available tests
+        Route::get('/{id}', [TestController::class, 'show']); // Get specific test details
+        Route::get('/{testId}/history', [TestController::class, 'getAttemptHistory']); // Get user's attempt history
+        
+        // Get tests by entity type
+        Route::get('/bootcamps/{id}', [TestController::class, 'getBootcampTests']);
+        Route::get('/workshops/{id}', [TestController::class, 'getWorkshopTests']);
+        Route::get('/programs/{id}', [TestController::class, 'getProgramTests']);
+        Route::get('/courses/{id}', [TestController::class, 'getCourseTests']);
+    });
+
+    // Test Attempt Routes
+    Route::prefix('test-attempts')->group(function () {
+        Route::post('/{testId}/start', [TestAttemptController::class, 'start']); // Start new attempt
+        Route::get('/{attemptId}', [TestAttemptController::class, 'getAttempt']); // Get active attempt
+        Route::post('/{attemptId}/answer', [TestAttemptController::class, 'saveAnswer']); // Save answer
+        Route::post('/{attemptId}/submit', [TestAttemptController::class, 'submit']); // Submit attempt
+        Route::get('/{attemptId}/result', [TestAttemptController::class, 'getResult']); // Get results
+        Route::get('/', [TestAttemptController::class, 'myAttempts']); // Get all user's attempts
+    });
+});
