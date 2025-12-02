@@ -33,7 +33,6 @@ return new class extends Migration
             $table->timestamps();
             $table->timestamp('published_at')->nullable();
 
-            $table->index('type');
             $table->index('is_published');
         });
     }

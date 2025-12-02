@@ -31,9 +31,9 @@ class EvaluationController extends Controller
         
         // Assuming you have Course, Bootcamp, Workshop models
         $products = match($type) {
-            'course' => \App\Models\Course::select('id', 'name')->get(),
-            'bootcamp' => \App\Models\Bootcamp::select('id', 'name')->get(),
-            'workshop' => \App\Models\Workshop::select('id', 'name')->get(),
+            'course' => \App\Models\Course::select('id', 'title')->get(),
+            'bootcamp' => \App\Models\Bootcamp::select('id', 'title')->get(),
+            'workshop' => \App\Models\Workshop::select('id', 'title')->get(),
         };
 
         return response()->json([

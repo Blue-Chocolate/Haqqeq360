@@ -22,7 +22,7 @@ class RequestProgramResource extends Resource
 
     protected static ?string $navigationLabel = 'Program Requests';
 
-    protected static ?string $navigationGroup = 'Requests';
+    protected static ?string $navigationGroup = 'إدارة الطلبات';
 
     public static function form(Form $form): Form
     {
