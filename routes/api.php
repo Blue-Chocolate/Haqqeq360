@@ -260,3 +260,121 @@ Route::middleware(['auth:sanctum'])->prefix('student')->group(function () {
         Route::post('/{evaluation}/submit', [EvaluationResponseController::class, 'submit']);
     });
 });
+
+use App\Http\Controllers\Api\CoursePublishRequestController\CoursePublishRequestController;
+
+Route::middleware('auth:sanctum')->group(function () {
+    // Course Publish Requests
+    Route::get('/course-publish-requests', [CoursePublishRequestController::class, 'index']);
+    Route::post('/course-publish-requests', [CoursePublishRequestController::class, 'store']);
+    Route::get('/course-publish-requests/statistics', [CoursePublishRequestController::class, 'statistics']);
+    Route::get('/course-publish-requests/{id}', [CoursePublishRequestController::class, 'show']);
+    Route::put('/course-publish-requests/{id}', [CoursePublishRequestController::class, 'update']);
+    Route::delete('/course-publish-requests/{id}', [CoursePublishRequestController::class, 'destroy']);
+});
+
+use App\Http\Controllers\Api\CaseStudyController\Instructor\CaseStudyController as InstructorCaseStudyController;
+use App\http\Controllers\Api\CaseStudyController\Student\CaseStudyController  as LearnerCaseStudyController;
+
+Route::middleware(['auth:sanctum'])->group(function () {
+    
+    // Instructor Routes
+    Route::middleware(['role:instructor,admin'])->prefix('instructor')->group(function () {
+        
+        Route::prefix('case-studies')->group(function () {
+            Route::get('/', [InstructorCaseStudyController::class, 'index']);
+            Route::post('/', [InstructorCaseStudyController::class, 'store']);
+            Route::get('/{id}', [InstructorCaseStudyController::class, 'show']);
+            Route::put('/{id}', [InstructorCaseStudyController::class, 'update']);
+            Route::delete('/{id}', [InstructorCaseStudyController::class, 'destroy']);
+            
+            // Toggle status
+            Route::patch('/{id}/toggle-status', [InstructorCaseStudyController::class, 'toggleStatus']);
+            
+            // View answers
+            Route::get('/{id}/answers', [InstructorCaseStudyController::class, 'answers']);
+            Route::get('/{caseStudyId}/answers/{answerId}', [InstructorCaseStudyController::class, 'viewAnswer']);
+        });
+    });
+
+    // Learner Routes
+    Route::middleware(['role:learner'])->prefix('learner')->group(function () {
+        
+        Route::prefix('case-studies')->group(function () {
+            Route::get('/', [LearnerCaseStudyController::class, 'index']);
+            Route::get('/{id}', [LearnerCaseStudyController::class, 'show']);
+            
+            // Submit answer
+            Route::post('/{id}/answer', [LearnerCaseStudyController::class, 'submitAnswer']);
+            
+            // My submissions
+            Route::get('/my/submissions', [LearnerCaseStudyController::class, 'mySubmissions']);
+            
+            // Update answer
+            Route::put('/answers/{id}', [LearnerCaseStudyController::class, 'updateAnswer']);
+            
+            // File management
+            Route::delete('/answers/{answerId}/files/{fileId}', [LearnerCaseStudyController::class, 'deleteFile']);
+            Route::get('/answers/{answerId}/files/{fileId}/download', [LearnerCaseStudyController::class, 'downloadFile']);
+        });
+    });
+});
+
+use App\Http\Controllers\Api\KnowledgeBaseController\KnowledgeBaseController;
+
+
+Route::prefix('learner')->group(function () {
+    
+    // Public Routes - لا تحتاج Authentication
+    Route::prefix('knowledge-base')->group(function () {
+        
+        // Get all articles with filters
+        // GET /api/v1/knowledge-base
+        // Query params: search, course_id, tag_id, sort_by, sort_order, per_page
+        Route::get('/', [KnowledgeBaseController::class, 'index'])
+            ->name('index');
+        
+        // Get article by slug
+        // GET /api/v1/knowledge-base/article/{slug}
+        Route::get('/article/{slug}', [KnowledgeBaseController::class, 'show'])
+            ->name('show');
+        
+        // Get all tags
+        // GET /api/v1/knowledge-base/tags
+        Route::get('/tags', [KnowledgeBaseController::class, 'tags'])
+            ->name('tags');
+        
+        // Get articles by tag slug
+        // GET /api/v1/knowledge-base/tag/{slug}
+        Route::get('/tag/{slug}', [KnowledgeBaseController::class, 'byTag'])
+            ->name('by-tag');
+        
+        // Get popular articles (most viewed)
+        // GET /api/v1/knowledge-base/popular?limit=10
+        Route::get('/popular', [KnowledgeBaseController::class, 'popular'])
+            ->name('popular');
+        
+        // Get recent articles
+        // GET /api/v1/knowledge-base/recent?limit=10
+        Route::get('/recent', [KnowledgeBaseController::class, 'recent'])
+            ->name('recent');
+        
+        // Search articles
+        // POST /api/v1/knowledge-base/search
+        // Body: { "query": "search term", "per_page": 12 }
+        Route::post('/search', [KnowledgeBaseController::class, 'search'])
+            ->name('search');
+    });
+    
+    // Protected Routes - تحتاج Authentication (Sanctum)
+    Route::middleware(['auth:sanctum'])->group(function () {
+        
+        Route::prefix('knowledge-base')->name('api.kb.')->group(function () {
+            
+            // Get articles for a specific course (requires enrollment)
+            // GET /api/v1/knowledge-base/course/{course}
+            Route::get('/course/{course}', [KnowledgeBaseController::class, 'forCourse'])
+                ->name('course');
+        });
+    });
+});

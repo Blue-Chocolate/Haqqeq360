@@ -1,33 +1,30 @@
 <?php
 
-// app/Filament/Widgets/UsersStatsWidget.php
 namespace App\Filament\Widgets;
 
-use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
-use App\Filament\Resources\UserResource;
-use Illuminate\Support\Facades\Log;
-class UsersStatsWidget extends BaseWidget
+use App\Models\User;
+
+class StatsOverview extends BaseWidget
 {
     protected function getStats(): array
 {
-    try {
-        $userCount = User::count();
-    } catch (\Exception $e) {
-        \Log::error('Failed to fetch user count: ' . $e->getMessage());
-        $userCount = 0;
-    }
-
-    return [
-        Stat::make('Total Users', $userCount)
+    return array_filter([
+        Stat::make('Total Users', User::count())
             ->description('All registered users')
-            ->descriptionIcon('heroicon-m-users')
-            ->color('success')
-            ->url('/admin/users')
-            ->extraAttributes([
-                'class' => 'cursor-pointer',
-            ]),
-    ];
+            ->color('success'),
+
+        auth()->user()->can('viewAny', User::class) 
+            ? Stat::make('New Users', User::whereDate('created_at', today())->count())
+                ->description('Registered today')
+                ->color('info')
+            : null,
+
+        auth()->user()->role === 'admin'
+            ? Stat::make('Admins', User::where('role', 'admin')->count())
+                ->color('danger')
+            : null,
+    ]);
 }
 }

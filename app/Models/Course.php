@@ -15,5 +15,9 @@ class Course extends Model {
     public function instructor() { return $this->belongsTo(User::class, 'instructor_id'); }
     public function assignments() { return $this->hasMany(Assignment::class); }
     public function enrollments() { return $this->morphMany(Enrollment::class, 'enrollable'); }
+    public function publishRequests()
+{
+    return $this->hasMany(CoursePublishRequest::class);
+}
 }
 

@@ -24,7 +24,8 @@ protected $fillable = [
     'bio',
     'avatar',
     'email_verified_at', // Add if you want it mass-assignable
-    'api_token' // Add if you want it mass-assignable
+    'api_token' ,
+    'is_active'// Add if you want it mass-assignable
 ];
     public function enrollments() { return $this->hasMany(Enrollment::class); }
     public function courses() { return $this->hasMany(Course::class, 'instructor_id'); }
@@ -36,6 +37,8 @@ protected $fillable = [
 
     protected $casts = [
         'email_verified_at' => 'datetime',
+        'is_active' => 'boolean',
+
     ];
 // In App\Models\User.php
 public function getNameAttribute(): string

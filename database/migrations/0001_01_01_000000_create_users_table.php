@@ -18,12 +18,13 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->string('password');
-            $table->enum('role', ['learner', 'instructor', 'admin'])->default('learner');
+            $table->enum('role', ['learner', 'instructor', 'admin','supervisior','manger'])->default('learner');
             $table->text('bio')->nullable();
             $table->string('api_token', 80)->unique()->nullable()->default(null);
             $table->string('avatar')->nullable();
             $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken();
+            $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
         });
