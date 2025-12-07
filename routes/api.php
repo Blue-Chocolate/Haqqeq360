@@ -45,8 +45,7 @@ use App\Http\Controllers\Api\NotificationController\NotificationController;
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('notifications', [NotificationController::class, 'index']);
     Route::get('notifications/{id}', [NotificationController::class, 'show']);
-    Route::post('notifications', [NotificationController::class, 'store']);
-    Route::patch('notifications/{id}/read', [NotificationController::class, 'markRead']);
+    Route::patch('notifications/{id}/read', [NotificationController::class, 'markRead']); // wHEN USER click on the notification it is marked as read in database
     Route::patch('notifications/{id}/unread', [NotificationController::class, 'markUnread']);
     Route::delete('notifications/{id}', [NotificationController::class, 'destroy']);
 });

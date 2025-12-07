@@ -46,5 +46,8 @@ public function getNameAttribute(): string
     return trim($this->first_name . ' ' . $this->second_name);
 }
 
-
+   public function userNotifications() // instead of notifications()
+   {
+       return $this->hasMany(Notification::class, 'user_id');
+   }
 }
