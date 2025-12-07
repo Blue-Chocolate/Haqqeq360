@@ -41,7 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 });
 Route::middleware('auth:sanctum')->prefix('me')->group(function () {
     Route::get('/', [\App\Http\Controllers\Api\UserController\ProfileController::class, 'show']);
-    Route::put('/', [\App\Http\Controllers\Api\UserController\ProfileController::class, 'update']);
+    Route::patch('/', [\App\Http\Controllers\Api\UserController\ProfileController::class, 'update']); // PATCH for partial updates
     Route::delete('/', [\App\Http\Controllers\Api\UserController\ProfileController::class, 'destroy']);
 });
 

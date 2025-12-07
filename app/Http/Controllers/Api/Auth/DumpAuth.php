@@ -13,41 +13,54 @@ class DumpAuth extends Controller
     /**
      * Register a new user
      */
-    public function register(Request $request)
-    {
-        $validator = Validator::make($request->all(), [
-            'first_name'  => 'required|string|max:255',
-            'second_name' => 'required|string|max:255',
-            'email'       => 'required|email|unique:users,email',
-            'phone'       => 'nullable|string',
-            'password'    => 'required|min:6|confirmed', // requires password_confirmation
-        ]);
+public function register(Request $request)
+{
+    $validator = Validator::make($request->all(), [
+        'first_name'  => 'required|string|max:255',
+        'second_name' => 'required|string|max:255',
+        'email'       => 'required|email|unique:users,email',
+        'phone'       => 'nullable|string',
+        'password'    => 'required|min:6|confirmed', // requires password_confirmation
+        'avatar'      => 'nullable', // can be file or string URL
+    ]);
 
-        if ($validator->fails()) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Validation error',
-                'errors'  => $validator->errors()
-            ], 422);
-        }
-
-        $user = User::create([
-            'first_name'  => $request->first_name,
-            'second_name' => $request->second_name,
-            'email'       => $request->email,
-            'phone'       => $request->phone,
-            'password'    => Hash::make($request->password),
-        ]);
-
-        $token = $user->createToken('api_token')->plainTextToken;
-
+    if ($validator->fails()) {
         return response()->json([
-            'status'  => true,
-            'message' => 'User registered successfully',
-            'token'   => $token,
-            'user'    => $user,
-        ]);
+            'status'  => false,
+            'message' => 'Validation error',
+            'errors'  => $validator->errors()
+        ], 422);
     }
+
+    $avatarPath = null;
+
+    // Check if avatar is a file upload
+    if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
+        $avatarPath = $request->file('avatar')->store('avatars', 'public'); // storage/app/public/avatars
+    }
+    // Check if avatar is a URL string
+    elseif ($request->input('avatar')) {
+        $avatarPath = $request->input('avatar');
+    }
+
+    $user = User::create([
+        'first_name'  => $request->first_name,
+        'second_name' => $request->second_name,
+        'email'       => $request->email,
+        'phone'       => $request->phone,
+        'password'    => Hash::make($request->password),
+        'avatar'      => $avatarPath,
+    ]);
+
+    $token = $user->createToken('api_token')->plainTextToken;
+
+    return response()->json([
+        'status'  => true,
+        'message' => 'User registered successfully',
+        'token'   => $token,
+        'user'    => $user,
+    ]);
+}
 
     /**
      * Login user
