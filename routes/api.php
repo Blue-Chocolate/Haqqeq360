@@ -39,6 +39,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/users/{id}', [UserController::class, 'update']);
     Route::delete('/users/{id}', [UserController::class, 'destroy']);
 });
+Route::middleware('auth:sanctum')->prefix('me')->group(function () {
+    Route::get('/', [\App\Http\Controllers\Api\UserController\ProfileController::class, 'show']);
+    Route::put('/', [\App\Http\Controllers\Api\UserController\ProfileController::class, 'update']);
+    Route::delete('/', [\App\Http\Controllers\Api\UserController\ProfileController::class, 'destroy']);
+});
 
 use App\Http\Controllers\Api\NotificationController\NotificationController;
 
