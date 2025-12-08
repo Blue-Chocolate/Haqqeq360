@@ -774,6 +774,17 @@ class CourseResource extends Resource
                     ->toggleable()
                     ->placeholder('—'),
                 
+                Tables\Columns\TextColumn::make('price')
+                    ->money('USD')
+                    ->sortable()
+                    ->toggleable(),
+                
+                Tables\Columns\TextColumn::make('discounted_price')
+                    ->money('USD')
+                    ->sortable()
+                    ->toggleable()
+                    ->placeholder('—'),
+                
                 Tables\Columns\BadgeColumn::make('level')
                     ->colors([
                         'success' => 'beginner',

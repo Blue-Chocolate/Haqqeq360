@@ -106,3 +106,5 @@ class Course extends Model
         return $this->hasMany(Discussion::class);
     }
 }
+
+
