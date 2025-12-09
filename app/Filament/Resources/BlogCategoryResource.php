@@ -19,13 +19,17 @@ class BlogCategoryResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
+    protected static ?string $navigationLabel = 'فئات المدونات';
+
     public static function form(Form $form): Form
     {
         return $form->schema([
             Forms\Components\TextInput::make('name')
+                ->label('الاسم')
                 ->required()
                 ->maxLength(255),
             Forms\Components\Textarea::make('description')
+                ->label('الوصف')
                 ->maxLength(500),
         ]);
     }
@@ -33,17 +37,17 @@ class BlogCategoryResource extends Resource
     public static function table(Table $table): Table
     {
         return $table->columns([
-            Tables\Columns\TextColumn::make('id')->sortable(),
-            Tables\Columns\TextColumn::make('name')->searchable()->sortable(),
-            Tables\Columns\TextColumn::make('description')->limit(50),
-            Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
+            Tables\Columns\TextColumn::make('id')->label('المعرف')->sortable(),
+            Tables\Columns\TextColumn::make('name')->label('الاسم')->searchable()->sortable(),
+            Tables\Columns\TextColumn::make('description')->label('الوصف')->limit(50),
+            Tables\Columns\TextColumn::make('created_at')->label('تم إنشاؤه في')->dateTime()->sortable(),
         ])
         ->filters([])
         ->actions([
-            Tables\Actions\EditAction::make(),
+            Tables\Actions\EditAction::make()->label('تحرير'),
         ])
         ->bulkActions([
-            Tables\Actions\DeleteBulkAction::make(),
+            Tables\Actions\DeleteBulkAction::make()->label('حذف'),
         ]);
     }
 

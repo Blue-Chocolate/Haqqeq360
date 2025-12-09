@@ -1,5 +1,9 @@
 <?php
 
+// ============================================
+// BankAccountResource.php
+// ============================================
+
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\BankAccountResource\Pages;
@@ -16,56 +20,64 @@ class BankAccountResource extends Resource
 
     protected static ?string $navigationIcon = 'heroicon-o-building-library';
 
-    protected static ?string $navigationGroup = 'Financial';
+    protected static ?string $navigationGroup = 'المالية';
+
+    protected static ?int $navigationSort = 1;
 
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Bank Information')
+                Forms\Components\Section::make('معلومات البنك')
                     ->schema([
                         Forms\Components\TextInput::make('bank_name')
+                            ->label('اسم البنك')
                             ->required()
                             ->maxLength(255)
-                            ->label('Bank Name'),
+                            ->placeholder('مثال: البنك الأهلي المصري'),
                         
                         Forms\Components\TextInput::make('beneficiary_name')
+                            ->label('اسم المستفيد')
                             ->required()
                             ->maxLength(255)
-                            ->label('Beneficiary Name'),
+                            ->placeholder('الاسم كما يظهر في الحساب البنكي'),
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Account Details')
+                Forms\Components\Section::make('تفاصيل الحساب')
                     ->schema([
                         Forms\Components\TextInput::make('account_number')
+                            ->label('رقم الحساب')
                             ->required()
                             ->maxLength(255)
-                            ->label('Account Number'),
+                            ->placeholder('0123456789'),
                         
                         Forms\Components\TextInput::make('iban')
+                            ->label('رقم الآيبان (IBAN)')
                             ->maxLength(255)
-                            ->label('IBAN')
-                            ->placeholder('e.g., EG380002000156789012345678901'),
+                            ->placeholder('مثال: EG380002000156789012345678901'),
                         
                         Forms\Components\TextInput::make('swift_code')
+                            ->label('كود السويفت (SWIFT)')
                             ->maxLength(255)
-                            ->label('SWIFT Code')
-                            ->placeholder('e.g., NBEGEGCXXXX'),
+                            ->placeholder('مثال: NBEGEGCXXXX'),
                     ])
                     ->columns(3),
 
-                Forms\Components\Section::make('Additional Information')
+                Forms\Components\Section::make('معلومات إضافية')
                     ->schema([
                         Forms\Components\Textarea::make('notes')
+                            ->label('ملاحظات')
                             ->maxLength(65535)
+                            ->rows(4)
                             ->columnSpanFull()
-                            ->label('Notes'),
+                            ->placeholder('أي ملاحظات أو تعليمات إضافية'),
                         
                         Forms\Components\Toggle::make('is_active')
+                            ->label('نشط')
                             ->default(true)
-                            ->label('Active Status')
-                            ->helperText('Only active accounts will be visible to users'),
+                            ->helperText('الحسابات النشطة فقط ستكون مرئية للمستخدمين')
+                            ->inline(false),
                     ]),
             ]);
     }
@@ -75,66 +87,76 @@ class BankAccountResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('bank_name')
+                    ->label('اسم البنك')
                     ->searchable()
                     ->sortable()
-                    ->label('Bank Name'),
+                    ->weight('bold'),
                 
                 Tables\Columns\TextColumn::make('beneficiary_name')
+                    ->label('المستفيد')
                     ->searchable()
-                    ->sortable()
-                    ->label('Beneficiary'),
+                    ->sortable(),
                 
                 Tables\Columns\TextColumn::make('account_number')
+                    ->label('رقم الحساب')
                     ->searchable()
-                    ->label('Account Number')
                     ->copyable()
-                    ->copyMessage('Account number copied'),
+                    ->copyMessage('تم نسخ رقم الحساب')
+                    ->copyMessageDuration(1500),
                 
                 Tables\Columns\TextColumn::make('iban')
+                    ->label('الآيبان')
                     ->searchable()
-                    ->label('IBAN')
                     ->copyable()
-                    ->copyMessage('IBAN copied')
+                    ->copyMessage('تم نسخ رقم الآيبان')
                     ->toggleable(isToggledHiddenByDefault: false),
                 
                 Tables\Columns\TextColumn::make('swift_code')
+                    ->label('كود السويفت')
                     ->searchable()
-                    ->label('SWIFT Code')
                     ->copyable()
+                    ->copyMessage('تم نسخ كود السويفت')
                     ->toggleable(isToggledHiddenByDefault: true),
                 
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label('نشط')
                     ->boolean()
-                    ->label('Active')
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('تاريخ الإنشاء')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('تاريخ التحديث')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active Status')
-                    ->placeholder('All accounts')
-                    ->trueLabel('Active only')
-                    ->falseLabel('Inactive only'),
+                    ->label('حالة النشاط')
+                    ->placeholder('جميع الحسابات')
+                    ->trueLabel('النشطة فقط')
+                    ->falseLabel('غير النشطة فقط'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\ViewAction::make()
+                    ->label('عرض'),
+                Tables\Actions\EditAction::make()
+                    ->label('تعديل'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('حذف'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('حذف المحدد'),
                 ]),
-            ]);
+            ])
+            ->defaultSort('created_at', 'desc');
     }
 
     public static function getRelations(): array
@@ -149,5 +171,15 @@ class BankAccountResource extends Resource
             'create' => Pages\CreateBankAccount::route('/create'),
             'edit' => Pages\EditBankAccount::route('/{record}/edit'),
         ];
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'حساب بنكي';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'الحسابات البنكية';
     }
 }

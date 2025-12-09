@@ -23,9 +23,9 @@ class PlanResource extends Resource
 {
     protected static ?string $model = Plan::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-clipboard-document-list';
 
-    protected static ?string $navigationGroup = 'Subscriptions';
+    protected static ?string $navigationGroup = 'الاشتراكات';
 
     protected static ?int $navigationSort = 1;
 
@@ -33,19 +33,22 @@ class PlanResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\Section::make('Plan Information')
+                Forms\Components\Section::make('معلومات الخطة')
                     ->schema([
                         Forms\Components\TextInput::make('name')
+                            ->label('اسم الخطة')
                             ->required()
                             ->maxLength(255)
-                            ->placeholder('e.g., Premium Plan, Basic Package'),
+                            ->placeholder('مثال: الخطة المميزة، الباقة الأساسية'),
                         
                         Forms\Components\Textarea::make('description')
+                            ->label('الوصف')
                             ->maxLength(65535)
                             ->rows(3)
                             ->columnSpanFull(),
                         
                         Forms\Components\TextInput::make('price')
+                            ->label('السعر')
                             ->required()
                             ->numeric()
                             ->prefix('$')
@@ -53,28 +56,28 @@ class PlanResource extends Resource
                             ->minValue(0),
                         
                         Forms\Components\Toggle::make('is_active')
-                            ->label('Active')
+                            ->label('نشط')
                             ->default(true)
-                            ->helperText('Only active plans will be visible to users'),
+                            ->helperText('الخطط النشطة فقط ستكون مرئية للمستخدمين'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Plan Type')
-                    ->description('Select what this plan is for')
+                Forms\Components\Section::make('نوع الخطة')
+                    ->description('اختر ما تنطبق عليه هذه الخطة')
                     ->schema([
                         Forms\Components\Select::make('planable_type')
-                            ->label('Type')
+                            ->label('النوع')
                             ->options([
-                                'App\Models\Workshop' => 'Workshop',
-                                'App\Models\Bootcamp' => 'Bootcamp',
-                                'App\Models\Program' => 'Program',
-                                'App\Models\Course' => 'Course',
+                                'App\Models\Workshop' => 'ورشة عمل',
+                                'App\Models\Bootcamp' => 'بوت كامب',
+                                'App\Models\Program' => 'برنامج',
+                                'App\Models\Course' => 'دورة',
                             ])
                             ->required()
                             ->live()
                             ->afterStateUpdated(fn (callable $set) => $set('planable_id', null)),
                         
                         Forms\Components\Select::make('planable_id')
-                            ->label('Select Item')
+                            ->label('اختر العنصر')
                             ->options(function (Get $get) {
                                 $type = $get('planable_type');
                                 if (!$type) {
@@ -84,7 +87,7 @@ class PlanResource extends Resource
                                 return match($type) {
                                     'App\Models\Workshop' => Workshop::pluck('title', 'id'),
                                     'App\Models\Bootcamp' => Bootcamp::pluck('title', 'id'),
-                                    'App\Models\Program' => Program::pluck('title', 'id'),
+                                    'App\Models\Program' => Program::pluck('title_ar', 'id'),
                                     'App\Models\Course' => Course::pluck('title', 'id'),
                                     default => [],
                                 };
@@ -92,18 +95,18 @@ class PlanResource extends Resource
                             ->required()
                             ->searchable()
                             ->preload()
-                            ->helperText('Select the specific workshop, bootcamp, program, or course'),
+                            ->helperText('اختر ورشة العمل، البوت كامب، البرنامج، أو الدورة المحددة'),
                     ])->columns(2),
 
-                Forms\Components\Section::make('Features')
+                Forms\Components\Section::make('الميزات')
                     ->schema([
                         Forms\Components\KeyValue::make('features')
-                            ->label('Plan Features')
-                            ->keyLabel('Feature Name')
-                            ->valueLabel('Feature Value')
+                            ->label('ميزات الخطة')
+                            ->keyLabel('اسم الميزة')
+                            ->valueLabel('قيمة الميزة')
                             ->reorderable()
-                            ->addActionLabel('Add Feature')
-                            ->helperText('Add features that come with this plan (e.g., "Duration": "3 months", "Support": "24/7")'),
+                            ->addActionLabel('إضافة ميزة')
+                            ->helperText('أضف الميزات المتضمنة في هذه الخطة (مثال: "المدة": "3 أشهر"، "الدعم": "24/7")'),
                     ]),
             ]);
     }
@@ -113,16 +116,17 @@ class PlanResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('id')
-                    ->label('ID')
+                    ->label('الرقم')
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('name')
+                    ->label('اسم الخطة')
                     ->searchable()
                     ->sortable()
                     ->weight('bold'),
                 
                 Tables\Columns\TextColumn::make('plan_type')
-                    ->label('Type')
+                    ->label('النوع')
                     ->badge()
                     ->colors([
                         'primary' => 'Bootcamp',
@@ -130,66 +134,77 @@ class PlanResource extends Resource
                         'warning' => 'Workshop',
                         'info' => 'Program',
                     ])
+                    ->formatStateUsing(fn (string $state): string => match ($state) {
+                        'Bootcamp' => 'بوت كامب',
+                        'Course' => 'دورة',
+                        'Workshop' => 'ورشة عمل',
+                        'Program' => 'برنامج',
+                        default => $state,
+                    })
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('planable.title')
-                    ->label('Item')
+                    ->label('العنصر')
                     ->searchable()
                     ->sortable()
                     ->limit(30),
                 
                 Tables\Columns\TextColumn::make('price')
+                    ->label('السعر')
                     ->money('USD')
                     ->sortable(),
                 
                 Tables\Columns\IconColumn::make('is_active')
+                    ->label('نشط')
                     ->boolean()
-                    ->label('Active')
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('subscriptions_count')
                     ->counts('subscriptions')
-                    ->label('Subscriptions')
+                    ->label('الاشتراكات')
                     ->badge()
                     ->color('success')
                     ->sortable(),
                 
                 Tables\Columns\TextColumn::make('created_at')
+                    ->label('تاريخ الإنشاء')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
                 
                 Tables\Columns\TextColumn::make('updated_at')
+                    ->label('تاريخ التحديث')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 SelectFilter::make('planable_type')
-                    ->label('Type')
+                    ->label('النوع')
                     ->options([
-                        'App\Models\Workshop' => 'Workshop',
-                        'App\Models\Bootcamp' => 'Bootcamp',
-                        'App\Models\Program' => 'Program',
-                        'App\Models\Course' => 'Course',
+                        'App\Models\Workshop' => 'ورشة عمل',
+                        'App\Models\Bootcamp' => 'بوت كامب',
+                        'App\Models\Program' => 'برنامج',
+                        'App\Models\Course' => 'دورة',
                     ])
                     ->multiple(),
                 
                 Tables\Filters\TernaryFilter::make('is_active')
-                    ->label('Active Status')
-                    ->boolean()
-                    ->trueLabel('Active only')
-                    ->falseLabel('Inactive only')
+                    ->label('حالة النشاط')
+                    ->placeholder('الكل')
+                    ->trueLabel('نشط فقط')
+                    ->falseLabel('غير نشط فقط')
                     ->native(false),
                 
                 Filter::make('price')
+                    ->label('السعر')
                     ->form([
                         Forms\Components\TextInput::make('price_from')
-                            ->label('Min Price')
+                            ->label('السعر الأدنى')
                             ->numeric()
                             ->prefix('$'),
                         Forms\Components\TextInput::make('price_to')
-                            ->label('Max Price')
+                            ->label('السعر الأقصى')
                             ->numeric()
                             ->prefix('$'),
                     ])
@@ -207,38 +222,42 @@ class PlanResource extends Resource
                     ->indicateUsing(function (array $data): array {
                         $indicators = [];
                         if ($data['price_from'] ?? null) {
-                            $indicators[] = 'Min: $' . number_format($data['price_from'], 2);
+                            $indicators[] = 'الحد الأدنى: $' . number_format($data['price_from'], 2);
                         }
                         if ($data['price_to'] ?? null) {
-                            $indicators[] = 'Max: $' . number_format($data['price_to'], 2);
+                            $indicators[] = 'الحد الأقصى: $' . number_format($data['price_to'], 2);
                         }
                         return $indicators;
                     }),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
-                    Tables\Actions\ViewAction::make(),
-                    Tables\Actions\EditAction::make(),
+                    Tables\Actions\ViewAction::make()
+                        ->label('عرض'),
+                    Tables\Actions\EditAction::make()
+                        ->label('تعديل'),
                     Tables\Actions\Action::make('toggle_active')
-                        ->label(fn (Plan $record) => $record->is_active ? 'Deactivate' : 'Activate')
+                        ->label(fn (Plan $record) => $record->is_active ? 'إلغاء التفعيل' : 'تفعيل')
                         ->icon(fn (Plan $record) => $record->is_active ? 'heroicon-o-x-circle' : 'heroicon-o-check-circle')
                         ->color(fn (Plan $record) => $record->is_active ? 'danger' : 'success')
                         ->requiresConfirmation()
                         ->action(fn (Plan $record) => $record->update(['is_active' => !$record->is_active])),
-                    Tables\Actions\DeleteAction::make(),
+                    Tables\Actions\DeleteAction::make()
+                        ->label('حذف'),
                 ]),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('حذف المحدد'),
                     Tables\Actions\BulkAction::make('activate')
-                        ->label('Activate Selected')
+                        ->label('تفعيل المحدد')
                         ->icon('heroicon-o-check-circle')
                         ->color('success')
                         ->requiresConfirmation()
                         ->action(fn ($records) => $records->each->update(['is_active' => true])),
                     Tables\Actions\BulkAction::make('deactivate')
-                        ->label('Deactivate Selected')
+                        ->label('إلغاء تفعيل المحدد')
                         ->icon('heroicon-o-x-circle')
                         ->color('danger')
                         ->requiresConfirmation()
@@ -263,7 +282,14 @@ class PlanResource extends Resource
             'edit' => Pages\EditPlan::route('/{record}/edit'),
         ];
     }
+
+    public static function getModelLabel(): string
+    {
+        return 'خطة';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'الخطط';
+    }
 }
-
-
-?>

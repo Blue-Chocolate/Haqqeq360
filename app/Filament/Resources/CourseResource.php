@@ -151,6 +151,136 @@ class CourseResource extends Resource
                             ->native(false),
                     ])
                     ->columns(2),
+
+                Forms\Components\Section::make('Course Content')
+                    ->schema([
+                        Forms\Components\Repeater::make('units')
+                            ->relationship('units')
+                            ->schema([
+                                Forms\Components\TextInput::make('title')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
+
+                                Forms\Components\TextInput::make('order')
+                                    ->numeric()
+                                    ->default(0)
+                                    ->minValue(0)
+                                    ->helperText('Order of the unit in the course'),
+
+                                Forms\Components\Repeater::make('lessons')
+                                    ->relationship('lessons')
+                                    ->schema([
+                                        Forms\Components\TextInput::make('title')
+                                            ->required()
+                                            ->maxLength(255)
+                                            ->columnSpanFull(),
+
+                                        Forms\Components\RichEditor::make('content')
+                                            ->columnSpanFull()
+                                            ->toolbarButtons([
+                                                'bold',
+                                                'italic',
+                                                'link',
+                                                'bulletList',
+                                                'orderedList',
+                                                'codeBlock',
+                                            ]),
+
+                                        Forms\Components\TextInput::make('order')
+                                            ->numeric()
+                                            ->default(0)
+                                            ->minValue(0)
+                                            ->helperText('Order of the lesson in the unit'),
+
+                                        Forms\Components\TextInput::make('video_url')
+                                            ->url()
+                                            ->maxLength(255)
+                                            ->placeholder('https://youtube.com/watch?v=...')
+                                            ->helperText('YouTube, Vimeo, or other video URL'),
+
+                                        Forms\Components\TextInput::make('resource_link')
+                                            ->url()
+                                            ->maxLength(255)
+                                            ->placeholder('https://example.com/resource')
+                                            ->helperText('External resource or reference link'),
+
+                                        Forms\Components\FileUpload::make('attachment_path')
+                                            ->label('Attachment')
+                                            ->directory('lessons/attachments')
+                                            ->maxSize(10240)
+                                            ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-rar'])
+                                            ->helperText('PDF, ZIP, or RAR files (max 10MB)'),
+
+                                        Forms\Components\Toggle::make('published')
+                                            ->default(true)
+                                            ->helperText('Is this lesson visible to students?'),
+
+                                        Forms\Components\Section::make('Assignment')
+                                            ->schema([
+                                                Forms\Components\TextInput::make('assignment.title')
+                                                    ->label('Assignment Title')
+                                                    ->maxLength(255),
+
+                                                Forms\Components\RichEditor::make('assignment.description')
+                                                    ->label('Assignment Description')
+                                                    ->columnSpanFull()
+                                                    ->toolbarButtons([
+                                                        'bold',
+                                                        'italic',
+                                                        'link',
+                                                        'bulletList',
+                                                        'orderedList',
+                                                    ]),
+
+                                                Forms\Components\DateTimePicker::make('assignment.due_date')
+                                                    ->label('Due Date')
+                                                    ->native(false),
+
+                                                Forms\Components\TextInput::make('assignment.max_score')
+                                                    ->label('Maximum Score')
+                                                    ->numeric()
+                                                    ->default(100)
+                                                    ->minValue(0),
+
+                                                Forms\Components\FileUpload::make('assignment.attachment_path')
+                                                    ->label('Assignment Attachment')
+                                                    ->directory('assignments/attachments')
+                                                    ->maxSize(5120)
+                                                    ->helperText('Additional files for the assignment (max 5MB)'),
+
+                                                Forms\Components\Toggle::make('assignment.published')
+                                                    ->label('Published')
+                                                    ->default(true)
+                                                    ->helperText('Is this assignment active?'),
+                                            ])
+                                            ->columns(2)
+                                            ->collapsed()
+                                            ->collapsible(),
+                                    ])
+                                    ->orderColumn('order')
+                                    ->itemLabel(fn (array $state): ?string => $state['title'] ?? 'Lesson')
+                                    ->collapsed()
+                                    ->collapsible()
+                                    ->columnSpanFull()
+                                    ->defaultItems(0)
+                                    ->addActionLabel('Add Lesson')
+                                    ->reorderable()
+                                    ->cloneable(),
+                            ])
+                            ->orderColumn('order')
+                            ->itemLabel(fn (array $state): ?string => $state['title'] ?? 'Unit')
+                            ->collapsed()
+                            ->collapsible()
+                            ->columnSpanFull()
+                            ->defaultItems(0)
+                            ->addActionLabel('Add Unit')
+                            ->reorderable()
+                            ->cloneable(),
+                    ])
+                    ->columnSpanFull()
+                    ->collapsed()
+                    ->collapsible(),
             ]);
     }
 
@@ -171,6 +301,12 @@ class CourseResource extends Resource
                     ->searchable()
                     ->sortable()
                     ->toggleable(),
+
+                Tables\Columns\TextColumn::make('units_count')
+                    ->counts('units')
+                    ->label('Units')
+                    ->badge()
+                    ->color('info'),
                 
                 Tables\Columns\TextColumn::make('price')
                     ->money('USD')
@@ -361,7 +497,6 @@ class CourseResource extends Resource
     {
         return [
             RelationManagers\EnrollmentsRelationManager::class,
-            RelationManagers\UnitsRelationManager::class,
         ];
     }
 

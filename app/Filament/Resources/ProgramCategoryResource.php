@@ -20,31 +20,94 @@ class ProgramCategoryResource extends Resource
 {
     protected static ?string $model = ProgramCategory::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-tag';
+
+    protected static ?string $navigationGroup = 'إدارة المنتجات';
+
+    protected static ?int $navigationSort = 5;
 
     public static function form(Form $form): Form
-{
-    return $form->schema([
-        TextInput::make('name')->required()->maxLength(255),
-        Textarea::make('description')->rows(4),
-    ]);
-}
+    {
+        return $form->schema([
+            Forms\Components\Section::make('معلومات التصنيف')
+                ->schema([
+                    TextInput::make('name')
+                        ->label('اسم التصنيف')
+                        ->required()
+                        ->maxLength(255)
+                        ->unique(ignoreRecord: true)
+                        ->helperText('اسم فريد لتصنيف البرنامج'),
 
-public static function table(Table $table): Table
-{
-    return $table
-        ->columns([
-            TextColumn::make('id')->sortable(),
-            TextColumn::make('name')->searchable()->sortable(),
-            TextColumn::make('description')->limit(80),
-            TextColumn::make('created_at')->dateTime()->sortable(),
-        ])
-        ->filters([])
-        ->actions([Tables\Actions\EditAction::make()])
-        ->bulkActions([Tables\Actions\BulkActionGroup::make([
-            Tables\Actions\DeleteBulkAction::make(),
-        ])]);
-}
+                    Textarea::make('description')
+                        ->label('الوصف')
+                        ->rows(4)
+                        ->maxLength(1000)
+                        ->helperText('وصف اختياري للتصنيف'),
+                ])
+                ->columns(1),
+        ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('id')
+                    ->label('الرقم')
+                    ->sortable(),
+
+                TextColumn::make('name')
+                    ->label('اسم التصنيف')
+                    ->searchable()
+                    ->sortable()
+                    ->weight('bold'),
+
+                TextColumn::make('description')
+                    ->label('الوصف')
+                    ->limit(80)
+                    ->placeholder('—')
+                    ->wrap(),
+
+                TextColumn::make('programs_count')
+                    ->counts('programs')
+                    ->label('عدد البرامج')
+                    ->badge()
+                    ->color('info')
+                    ->sortable(),
+
+                TextColumn::make('created_at')
+                    ->label('تاريخ الإنشاء')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+
+                TextColumn::make('updated_at')
+                    ->label('تاريخ التحديث')
+                    ->dateTime()
+                    ->sortable()
+                    ->toggleable(isToggledHiddenByDefault: true),
+            ])
+            ->filters([
+                Tables\Filters\Filter::make('has_programs')
+                    ->label('يحتوي على برامج')
+                    ->query(fn (Builder $query): Builder => $query->has('programs')),
+            ])
+            ->actions([
+                Tables\Actions\ViewAction::make()
+                    ->label('عرض'),
+                Tables\Actions\EditAction::make()
+                    ->label('تعديل'),
+                Tables\Actions\DeleteAction::make()
+                    ->label('حذف'),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make()
+                        ->label('حذف المحدد'),
+                ])
+            ])
+            ->defaultSort('name', 'asc');
+    }
 
     public static function getRelations(): array
     {
@@ -60,5 +123,15 @@ public static function table(Table $table): Table
             'create' => Pages\CreateProgramCategory::route('/create'),
             'edit' => Pages\EditProgramCategory::route('/{record}/edit'),
         ];
+    }
+
+    public static function getModelLabel(): string
+    {
+        return 'تصنيف برنامج';
+    }
+
+    public static function getPluralModelLabel(): string
+    {
+        return 'تصنيفات البرامج';
     }
 }
