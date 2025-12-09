@@ -17,19 +17,11 @@ class Unit extends Model
         'unitable_type',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    // Polymorphic: unit belongs to course, bootcamp or workshop
     public function unitable()
     {
         return $this->morphTo();
     }
 
-    // Unit has many lessons
     public function lessons()
     {
         return $this->hasMany(Lesson::class)->orderBy('order');

@@ -13,6 +13,7 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
+use Filament\Forms\Get;
 
 class CourseResource extends Resource
 {
@@ -215,48 +216,6 @@ class CourseResource extends Resource
                                         Forms\Components\Toggle::make('published')
                                             ->default(true)
                                             ->helperText('Is this lesson visible to students?'),
-
-                                        Forms\Components\Section::make('Assignment')
-                                            ->schema([
-                                                Forms\Components\TextInput::make('assignment.title')
-                                                    ->label('Assignment Title')
-                                                    ->maxLength(255),
-
-                                                Forms\Components\RichEditor::make('assignment.description')
-                                                    ->label('Assignment Description')
-                                                    ->columnSpanFull()
-                                                    ->toolbarButtons([
-                                                        'bold',
-                                                        'italic',
-                                                        'link',
-                                                        'bulletList',
-                                                        'orderedList',
-                                                    ]),
-
-                                                Forms\Components\DateTimePicker::make('assignment.due_date')
-                                                    ->label('Due Date')
-                                                    ->native(false),
-
-                                                Forms\Components\TextInput::make('assignment.max_score')
-                                                    ->label('Maximum Score')
-                                                    ->numeric()
-                                                    ->default(100)
-                                                    ->minValue(0),
-
-                                                Forms\Components\FileUpload::make('assignment.attachment_path')
-                                                    ->label('Assignment Attachment')
-                                                    ->directory('assignments/attachments')
-                                                    ->maxSize(5120)
-                                                    ->helperText('Additional files for the assignment (max 5MB)'),
-
-                                                Forms\Components\Toggle::make('assignment.published')
-                                                    ->label('Published')
-                                                    ->default(true)
-                                                    ->helperText('Is this assignment active?'),
-                                            ])
-                                            ->columns(2)
-                                            ->collapsed()
-                                            ->collapsible(),
                                     ])
                                     ->orderColumn('order')
                                     ->itemLabel(fn (array $state): ?string => $state['title'] ?? 'Lesson')
@@ -277,6 +236,97 @@ class CourseResource extends Resource
                             ->addActionLabel('Add Unit')
                             ->reorderable()
                             ->cloneable(),
+                    ])
+                    ->columnSpanFull()
+                    ->collapsed()
+                    ->collapsible(),
+
+                Forms\Components\Section::make('Assignments')
+                    ->schema([
+                        Forms\Components\Repeater::make('assignments')
+                            ->relationship('assignments')
+                            ->schema([
+                                Forms\Components\TextInput::make('title')
+                                    ->label('Assignment Title')
+                                    ->required()
+                                    ->maxLength(255)
+                                    ->columnSpanFull(),
+
+                                Forms\Components\RichEditor::make('description')
+                                    ->label('Assignment Description')
+                                    ->required()
+                                    ->columnSpanFull()
+                                    ->toolbarButtons([
+                                        'bold',
+                                        'italic',
+                                        'link',
+                                        'bulletList',
+                                        'orderedList',
+                                    ]),
+
+                                Forms\Components\Select::make('unit_id')
+                                    ->label('Select Unit')
+                                    ->relationship('unit', 'title', function (Builder $query, Get $get) {
+                                        // Get the course_id from the parent form context
+                                        $courseId = $get('../../id');
+                                        if ($courseId) {
+                                            return $query->where('course_id', $courseId);
+                                        }
+                                        return $query;
+                                    })
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->live()
+                                    ->afterStateUpdated(fn (callable $set) => $set('lesson_id', null)),
+
+                                Forms\Components\Select::make('lesson_id')
+                                    ->label('Select Lesson')
+                                    ->relationship('lesson', 'title', function (Builder $query, Get $get) {
+                                        $unitId = $get('unit_id');
+                                        if ($unitId) {
+                                            return $query->where('unit_id', $unitId);
+                                        }
+                                        return $query->whereNull('id'); // Return empty if no unit selected
+                                    })
+                                    ->searchable()
+                                    ->preload()
+                                    ->required()
+                                    ->disabled(fn (Get $get): bool => !$get('unit_id'))
+                                    ->helperText('Please select a unit first'),
+
+                                Forms\Components\DateTimePicker::make('due_date')
+                                    ->label('Due Date')
+                                    ->native(false)
+                                    ->required(),
+
+                                Forms\Components\TextInput::make('max_score')
+                                    ->label('Maximum Score')
+                                    ->numeric()
+                                    ->default(100)
+                                    ->minValue(0)
+                                    ->required(),
+
+                                Forms\Components\FileUpload::make('attachment_path')
+                                    ->label('Assignment Attachment')
+                                    ->directory('assignments/attachments')
+                                    ->maxSize(5120)
+                                    ->helperText('Additional files for the assignment (max 5MB)'),
+
+                                Forms\Components\Toggle::make('published')
+                                    ->label('Published')
+                                    ->default(true)
+                                    ->helperText('Is this assignment active?'),
+                            ])
+                            ->itemLabel(fn (array $state): ?string => $state['title'] ?? 'New Assignment')
+                            ->collapsed()
+                            ->collapsible()
+                            ->columnSpanFull()
+                            ->defaultItems(0)
+                            ->addActionLabel('Add Assignment')
+                            ->reorderable()
+                            ->cloneable()
+                            ->columns(2),
                     ])
                     ->columnSpanFull()
                     ->collapsed()
@@ -497,8 +547,7 @@ class CourseResource extends Resource
     {
         return [
             RelationManagers\EnrollmentsRelationManager::class,
-                    RelationManagers\AssignmentsRelationManager::class,  // Add this line
-
+            RelationManagers\AssignmentsRelationManager::class,
         ];
     }
 
@@ -509,6 +558,8 @@ class CourseResource extends Resource
             'create' => Pages\CreateCourse::route('/create'),
             'view' => Pages\ViewCourse::route('/{record}'),
             'edit' => Pages\EditCourse::route('/{record}/edit'),
+            'view-unit' => Pages\ViewUnit::route('/{record}/units/{unit}'),
+            'lessons.view' => Pages\ViewLesson::route('/{record}/lessons/{lesson}'),
         ];
     }
 

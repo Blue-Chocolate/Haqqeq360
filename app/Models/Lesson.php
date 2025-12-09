@@ -26,22 +26,16 @@ class Lesson extends Model
         return $this->belongsTo(Unit::class);
     }
 
-    // Lesson has many assignments
     public function assignments()
     {
         return $this->hasMany(Assignment::class);
     }
 
-    // Get the course through unit
+    // FIX — safest correct way to get course of a lesson in polymorphic setup
     public function course()
     {
-        return $this->hasOneThrough(
-            Course::class,
-            Unit::class,
-            'id', // Foreign key on units table
-            'id', // Foreign key on courses table
-            'unit_id', // Local key on lessons table
-            'unitable_id' // Local key on units table
-        )->where('units.unitable_type', Course::class);
+        return $this->unit->unitable instanceof Course
+            ? $this->unit->unitable
+            : null;
     }
 }

@@ -19,6 +19,7 @@ class Assignment extends Model
         'max_score',
         'attachment_path',
         'published',
+        'unit_id',
     ];
 
     protected $casts = [
@@ -27,27 +28,22 @@ class Assignment extends Model
         'published' => 'boolean',
     ];
 
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
-
-    // Assignment belongs to a course
     public function course()
     {
         return $this->belongsTo(Course::class);
     }
 
-    // Assignment belongs to a lesson
     public function lesson()
     {
         return $this->belongsTo(Lesson::class);
     }
 
-    // Assignment has many submissions
     public function submissions()
     {
         return $this->hasMany(Submission::class);
+    }
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 }
