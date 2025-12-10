@@ -559,6 +559,269 @@ class CourseResource extends Resource
     ->collapsed()
     ->collapsible()
     ->description('Manage course discussions. Link them to specific lessons or keep them as general course discussions.'),
+    Forms\Components\Section::make('Case Studies')
+    ->schema([
+        Forms\Components\Repeater::make('caseStudies')
+            ->relationship('caseStudies')
+            ->schema([
+                Forms\Components\Grid::make(3)
+                    ->schema([
+                        Forms\Components\Select::make('unit_id')
+                            ->label('Unit')
+                            ->options(function (Get $get, $livewire) {
+                                $courseId = $livewire->getRecord()?->id;
+                                if (!$courseId) {
+                                    return [];
+                                }
+                                return \App\Models\Unit::where('course_id', $courseId)
+                                    ->orderBy('order')
+                                    ->pluck('title', 'id')
+                                    ->toArray();
+                            })
+                            ->live()
+                            ->afterStateUpdated(fn (callable $set) => $set('lesson_id', null))
+                            ->searchable()
+                            ->preload()
+                            ->helperText('Optional: Link to specific unit'),
+
+                        Forms\Components\Select::make('lesson_id')
+                            ->label('Lesson')
+                            ->options(function (Get $get) {
+                                $unitId = $get('unit_id');
+                                if (!$unitId) {
+                                    return [];
+                                }
+                                return \App\Models\Lesson::where('unit_id', $unitId)
+                                    ->orderBy('order')
+                                    ->pluck('title', 'id')
+                                    ->toArray();
+                            })
+                            ->live()
+                            ->searchable()
+                            ->preload()
+                            ->disabled(fn (Get $get) => !$get('unit_id'))
+                            ->helperText('Optional: Link to specific lesson'),
+
+                        Forms\Components\Placeholder::make('case_study_location')
+                            ->label('')
+                            ->content(function (Get $get) {
+                                $unitId = $get('unit_id');
+                                $lessonId = $get('lesson_id');
+                                
+                                if ($unitId && $lessonId) {
+                                    $unit = \App\Models\Unit::find($unitId);
+                                    $lesson = \App\Models\Lesson::find($lessonId);
+                                    return '📍 ' . $unit?->title . ' → ' . $lesson?->title;
+                                } elseif ($unitId) {
+                                    $unit = \App\Models\Unit::find($unitId);
+                                    return '📍 ' . $unit?->title . ' (Unit Case Study)';
+                                }
+                                
+                                return '📍 General Course Case Study';
+                            }),
+                    ]),
+
+                Forms\Components\TextInput::make('title')
+                    ->label('Case Study Title')
+                    ->required()
+                    ->maxLength(255)
+                    ->columnSpanFull()
+                    ->placeholder('e.g., Real-World Marketing Campaign Analysis'),
+
+                Forms\Components\RichEditor::make('content')
+                    ->label('Case Study Content')
+                    ->required()
+                    ->columnSpanFull()
+                    ->toolbarButtons([
+                        'bold',
+                        'italic',
+                        'underline',
+                        'bulletList',
+                        'orderedList',
+                        'h2',
+                        'h3',
+                        'link',
+                        'blockquote',
+                        'codeBlock',
+                    ])
+                    ->helperText('Provide the complete case study scenario, background, and questions'),
+
+                Forms\Components\Grid::make(3)
+                    ->schema([
+                        Forms\Components\Select::make('instructor_id')
+                            ->label('Instructor')
+                            ->relationship('instructor', 'name', function ($query) {
+                                return $query->whereIn('role', ['instructor', 'admin']);
+                            })
+                            ->searchable()
+                            ->preload()
+                            ->required()
+                            ->default(fn () => auth()->id())
+                            ->helperText('Instructor responsible for this case study'),
+
+                        Forms\Components\TextInput::make('duration')
+                            ->label('Duration (Minutes)')
+                            ->numeric()
+                            ->required()
+                            ->minValue(1)
+                            ->default(60)
+                            ->suffix('minutes')
+                            ->helperText('Expected time to complete'),
+
+                        Forms\Components\Select::make('status')
+                            ->label('Status')
+                            ->options([
+                                'open' => 'Open',
+                                'closed' => 'Closed',
+                            ])
+                            ->default('open')
+                            ->required()
+                            ->native(false)
+                            ->helperText('Open: students can submit | Closed: read-only'),
+                    ]),
+
+                Forms\Components\Grid::make(2)
+                    ->schema([
+                        Forms\Components\DateTimePicker::make('available_from')
+                            ->label('Available From')
+                            ->native(false)
+                            ->helperText('When students can start viewing this case study'),
+
+                        Forms\Components\DateTimePicker::make('available_until')
+                            ->label('Available Until')
+                            ->native(false)
+                            ->helperText('Deadline for submissions (leave empty for no deadline)'),
+                    ]),
+
+                Forms\Components\Textarea::make('guidelines')
+                    ->label('Submission Guidelines')
+                    ->rows(3)
+                    ->columnSpanFull()
+                    ->placeholder('Provide instructions for students on how to approach and submit their answers...')
+                    ->helperText('Optional: Instructions, requirements, and evaluation criteria'),
+
+                Forms\Components\FileUpload::make('attachment')
+                    ->label('Case Study Attachment')
+                    ->directory('case-studies/attachments')
+                    ->maxSize(10240)
+                    ->acceptedFileTypes(['application/pdf', 'application/zip', 'application/x-rar', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
+                    ->helperText('Optional: Additional materials (PDF, DOCX, ZIP, RAR - max 10MB)')
+                    ->columnSpanFull(),
+
+                Forms\Components\Grid::make(3)
+                    ->schema([
+                        Forms\Components\TextInput::make('max_score')
+                            ->label('Maximum Score')
+                            ->numeric()
+                            ->default(100)
+                            ->minValue(0)
+                            ->helperText('Total points for this case study'),
+
+                        Forms\Components\TextInput::make('passing_score')
+                            ->label('Passing Score')
+                            ->numeric()
+                            ->default(50)
+                            ->minValue(0)
+                            ->helperText('Minimum points to pass'),
+
+                        Forms\Components\TextInput::make('max_attempts')
+                            ->label('Maximum Attempts')
+                            ->numeric()
+                            ->default(1)
+                            ->minValue(1)
+                            ->helperText('How many times students can submit'),
+                    ]),
+
+                Forms\Components\Grid::make(3)
+                    ->schema([
+                        Forms\Components\Toggle::make('allow_late_submission')
+                            ->label('Allow Late Submission')
+                            ->default(false)
+                            ->helperText('Accept submissions after deadline'),
+
+                        Forms\Components\Toggle::make('show_model_answer')
+                            ->label('Show Model Answer')
+                            ->default(false)
+                            ->helperText('Show example answer after deadline'),
+
+                        Forms\Components\Toggle::make('peer_review_enabled')
+                            ->label('Enable Peer Review')
+                            ->default(false)
+                            ->helperText('Students can review each other\'s work'),
+                    ]),
+
+                Forms\Components\RichEditor::make('model_answer')
+                    ->label('Model Answer (Optional)')
+                    ->columnSpanFull()
+                    ->toolbarButtons([
+                        'bold',
+                        'italic',
+                        'bulletList',
+                        'orderedList',
+                        'link',
+                    ])
+                    ->helperText('Provide an example or ideal answer for reference')
+                    ->visible(fn (Get $get) => $get('show_model_answer')),
+
+                Forms\Components\Placeholder::make('stats')
+                    ->label('Case Study Stats')
+                    ->content(function ($record) {
+                        if (!$record) {
+                            return 'Save the case study to see stats';
+                        }
+                        
+                        $answersCount = $record->answers()->count();
+                        $pendingCount = $record->answers()->where('status', 'pending')->count();
+                        $gradedCount = $record->answers()->where('status', 'graded')->count();
+                        
+                        return "📝 {$answersCount} Total Submissions | ⏳ {$pendingCount} Pending | ✅ {$gradedCount} Graded";
+                    })
+                    ->columnSpanFull(),
+            ])
+            ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $livewire): array {
+                $data['course_id'] = $livewire->getRecord()?->id;
+                if (empty($data['instructor_id'])) {
+                    $data['instructor_id'] = auth()->id();
+                }
+                return $data;
+            })
+            ->mutateRelationshipDataBeforeSaveUsing(function (array $data, $livewire): array {
+                $data['course_id'] = $livewire->getRecord()?->id;
+                return $data;
+            })
+            ->itemLabel(function (array $state): ?string {
+                if (!isset($state['title'])) {
+                    return 'New Case Study';
+                }
+                
+                $status = ($state['status'] ?? 'open') === 'open' ? '🟢' : '🔴';
+                $title = $state['title'];
+                
+                $unit = isset($state['unit_id']) ? \App\Models\Unit::find($state['unit_id']) : null;
+                $lesson = isset($state['lesson_id']) ? \App\Models\Lesson::find($state['lesson_id']) : null;
+                
+                $location = '';
+                if ($unit && $lesson) {
+                    $location = " (U{$unit->order} → L{$lesson->order})";
+                } elseif ($unit) {
+                    $location = " (Unit {$unit->order})";
+                }
+                
+                return $status . ' ' . $title . $location;
+            })
+            ->collapsed()
+            ->collapsible()
+            ->columnSpanFull()
+            ->defaultItems(0)
+            ->addActionLabel('Add Case Study')
+            ->cloneable()
+            ->reorderable(false)
+            ->orderColumn(false),
+    ])
+    ->columnSpanFull()
+    ->collapsed()
+    ->collapsible()
+    ->description('Create real-world case studies for students to analyze and solve. Case studies can be linked to specific lessons or remain general course materials.'),
                 Forms\Components\Section::make('Tests & Quizzes')
                     ->schema([
                         Forms\Components\Repeater::make('tests')

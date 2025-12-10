@@ -448,3 +448,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/assignments', [AssignmentController::class, 'index']);
     Route::get('/assignments/{id}', [AssignmentController::class, 'show']);
 });
+
+
+
+Route::prefix('courses')->group(function () {
+    Route::get('/', [CourseController::class, 'index']);
+    Route::get('/search', [CourseController::class, 'search']);
+    Route::get('/filter', [CourseController::class, 'filter']);
+    Route::get('/{id}', [CourseController::class, 'show']);
+    
+    // Lesson routes
+    Route::get('/{courseId}/lessons', [CourseController::class, 'lessons']);
+    Route::get('/{courseId}/lessons/{lessonId}', [CourseController::class, 'showLesson']);
+});

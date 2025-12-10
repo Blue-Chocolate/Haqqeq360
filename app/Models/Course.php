@@ -105,4 +105,8 @@ class Course extends Model
     {
         return $this->hasMany(Discussion::class);
     }
+    public function caseStudies()
+    {
+        return $this->hasMany(CaseStudy::class);
+    }
 }

@@ -46,4 +46,5 @@ class Plan extends Model
     {
         return class_basename($this->planable_type);
     }
+    
 }

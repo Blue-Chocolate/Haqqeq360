@@ -15,7 +15,7 @@ return new class extends Migration
             $table->string('slug')->unique();
             $table->text('description_ar')->nullable();
             $table->text('description_en')->nullable();
-            $table->foreignId('category_id')->nullable()->constrained('categories')->onDelete('set null');
+            $table->foreignId('category_id')->nullable()->constrained('programs_categories')->onDelete('set null');
             $table->enum('difficulty_level', ['beginner', 'intermediate', 'advanced'])->nullable();
             $table->enum('delivery_mode', ['online', 'blended', 'in_person']);
             $table->integer('duration_weeks')->nullable();

@@ -42,7 +42,7 @@ class Program extends Model
 
     // Relationships
     public function category() {
-        return $this->belongsTo(Category::class);
+        return $this->belongsTo(ProgramCategory::class);
     }
 
     public function creator() {
@@ -57,4 +57,5 @@ class Program extends Model
     {
         return $this->morphMany(Plan::class, 'planable');
     }
+    
 }
