@@ -225,19 +225,22 @@ class NewsResource extends Resource
                     }),
 
                 Tables\Actions\DeleteAction::make()
-                    ->label('حذف')
-                    ->successNotification(
-                        Notification::make()
-                            ->success()
-                            ->title('تم الحذف')
-                            ->body('تم حذف الخبر بنجاح.')
-                    )
-                    ->errorNotification(
-                        Notification::make()
-                            ->danger()
-                            ->title('خطأ')
-                            ->body('حدث خطأ أثناء حذف الخبر.')
-                    ),
+    ->label('حذف')
+    ->successNotification(
+        Notification::make()
+            ->success()
+            ->title('تم الحذف')
+            ->body('تم حذف رأس الصفحة بنجاح.')
+    )
+    ->after(function ($exception) {
+        if ($exception) {
+            Notification::make()
+                ->danger()
+                ->title('خطأ')
+                ->body('حدث خطأ أثناء حذف رأس الصفحة.')
+                ->send();
+        }
+    }),
 
                 Tables\Actions\RestoreAction::make()
                     ->label('استعادة')
