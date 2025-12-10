@@ -110,3 +110,5 @@ class Course extends Model
         return $this->hasMany(CaseStudy::class);
     }
 }
+
+
