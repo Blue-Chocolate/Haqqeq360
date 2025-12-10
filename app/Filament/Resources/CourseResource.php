@@ -7,13 +7,13 @@ use App\Filament\Resources\CourseResource\RelationManagers;
 use App\Models\Course;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Support\Str;
-use Filament\Forms\Get;
 
 class CourseResource extends Resource
 {
@@ -153,7 +153,7 @@ class CourseResource extends Resource
                     ])
                     ->columns(2),
 
-                Forms\Components\Section::make('Course Content')
+                Forms\Components\Section::make('Course Content - Units & Lessons')
                     ->schema([
                         Forms\Components\Repeater::make('units')
                             ->relationship('units')
@@ -246,6 +246,61 @@ class CourseResource extends Resource
                         Forms\Components\Repeater::make('assignments')
                             ->relationship('assignments')
                             ->schema([
+                                Forms\Components\Grid::make(3)
+                                    ->schema([
+                                        Forms\Components\Select::make('unit_id')
+                                            ->label('Unit')
+                                            ->options(function (Get $get, $livewire) {
+                                                $courseId = $livewire->getRecord()?->id;
+                                                if (!$courseId) {
+                                                    return [];
+                                                }
+                                                return \App\Models\Unit::where('course_id', $courseId)
+                                                    ->orderBy('order')
+                                                    ->pluck('title', 'id')
+                                                    ->toArray();
+                                            })
+                                            ->required()
+                                            ->live()
+                                            ->afterStateUpdated(fn (callable $set) => $set('lesson_id', null))
+                                            ->searchable()
+                                            ->preload(),
+
+                                        Forms\Components\Select::make('lesson_id')
+                                            ->label('Lesson')
+                                            ->options(function (Get $get) {
+                                                $unitId = $get('unit_id');
+                                                if (!$unitId) {
+                                                    return [];
+                                                }
+                                                return \App\Models\Lesson::where('unit_id', $unitId)
+                                                    ->orderBy('order')
+                                                    ->pluck('title', 'id')
+                                                    ->toArray();
+                                            })
+                                            ->required()
+                                            ->live()
+                                            ->searchable()
+                                            ->preload()
+                                            ->disabled(fn (Get $get) => !$get('unit_id'))
+                                            ->helperText('Select a unit first'),
+
+                                        Forms\Components\Placeholder::make('lesson_info')
+                                            ->label('')
+                                            ->content(function (Get $get) {
+                                                $unitId = $get('unit_id');
+                                                $lessonId = $get('lesson_id');
+                                                
+                                                if ($unitId && $lessonId) {
+                                                    $unit = \App\Models\Unit::find($unitId);
+                                                    $lesson = \App\Models\Lesson::find($lessonId);
+                                                    return '📍 ' . $unit?->title . ' → ' . $lesson?->title;
+                                                }
+                                                
+                                                return 'Select unit and lesson';
+                                            }),
+                                    ]),
+
                                 Forms\Components\TextInput::make('title')
                                     ->label('Assignment Title')
                                     ->required()
@@ -264,73 +319,69 @@ class CourseResource extends Resource
                                         'orderedList',
                                     ]),
 
-                                Forms\Components\Select::make('unit_id')
-                                    ->label('Select Unit')
-                                    ->relationship('unit', 'title', function (Builder $query, Get $get) {
-                                        // Get the course_id from the parent form context
-                                        $courseId = $get('../../id');
-                                        if ($courseId) {
-                                            return $query->where('course_id', $courseId);
-                                        }
-                                        return $query;
-                                    })
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->live()
-                                    ->afterStateUpdated(fn (callable $set) => $set('lesson_id', null)),
+                                Forms\Components\Grid::make(2)
+                                    ->schema([
+                                        Forms\Components\DateTimePicker::make('due_date')
+                                            ->label('Due Date')
+                                            ->native(false)
+                                            ->required(),
 
-                                Forms\Components\Select::make('lesson_id')
-                                    ->label('Select Lesson')
-                                    ->relationship('lesson', 'title', function (Builder $query, Get $get) {
-                                        $unitId = $get('unit_id');
-                                        if ($unitId) {
-                                            return $query->where('unit_id', $unitId);
-                                        }
-                                        return $query->whereNull('id'); // Return empty if no unit selected
-                                    })
-                                    ->searchable()
-                                    ->preload()
-                                    ->required()
-                                    ->disabled(fn (Get $get): bool => !$get('unit_id'))
-                                    ->helperText('Please select a unit first'),
-
-                                Forms\Components\DateTimePicker::make('due_date')
-                                    ->label('Due Date')
-                                    ->native(false)
-                                    ->required(),
-
-                                Forms\Components\TextInput::make('max_score')
-                                    ->label('Maximum Score')
-                                    ->numeric()
-                                    ->default(100)
-                                    ->minValue(0)
-                                    ->required(),
+                                        Forms\Components\TextInput::make('max_score')
+                                            ->label('Maximum Score')
+                                            ->numeric()
+                                            ->default(100)
+                                            ->minValue(0)
+                                            ->required(),
+                                    ]),
 
                                 Forms\Components\FileUpload::make('attachment_path')
                                     ->label('Assignment Attachment')
                                     ->directory('assignments/attachments')
                                     ->maxSize(5120)
-                                    ->helperText('Additional files for the assignment (max 5MB)'),
+                                    ->helperText('Additional files for the assignment (max 5MB)')
+                                    ->columnSpanFull(),
 
                                 Forms\Components\Toggle::make('published')
                                     ->label('Published')
                                     ->default(true)
                                     ->helperText('Is this assignment active?'),
                             ])
-                            ->itemLabel(fn (array $state): ?string => $state['title'] ?? 'New Assignment')
+                            ->mutateRelationshipDataBeforeCreateUsing(function (array $data, $livewire): array {
+                                $data['course_id'] = $livewire->getRecord()?->id;
+                                return $data;
+                            })
+                            ->mutateRelationshipDataBeforeSaveUsing(function (array $data, $livewire): array {
+                                $data['course_id'] = $livewire->getRecord()?->id;
+                                return $data;
+                            })
+                            ->itemLabel(function (array $state): ?string {
+                                if (!isset($state['title'])) {
+                                    return 'New Assignment';
+                                }
+                                
+                                $unit = isset($state['unit_id']) ? \App\Models\Unit::find($state['unit_id']) : null;
+                                $lesson = isset($state['lesson_id']) ? \App\Models\Lesson::find($state['lesson_id']) : null;
+                                
+                                $location = '';
+                                if ($unit && $lesson) {
+                                    $location = " (Unit {$unit->order} → Lesson {$lesson->order})";
+                                }
+                                
+                                return $state['title'] . $location;
+                            })
                             ->collapsed()
                             ->collapsible()
                             ->columnSpanFull()
                             ->defaultItems(0)
                             ->addActionLabel('Add Assignment')
-                            ->reorderable()
                             ->cloneable()
-                            ->columns(2),
+                            ->reorderable(false)
+                            ->orderColumn(false),
                     ])
                     ->columnSpanFull()
                     ->collapsed()
-                    ->collapsible(),
+                    ->collapsible()
+                    ->description('Add assignments to specific lessons in your course'),
             ]);
     }
 
@@ -547,7 +598,6 @@ class CourseResource extends Resource
     {
         return [
             RelationManagers\EnrollmentsRelationManager::class,
-            RelationManagers\AssignmentsRelationManager::class,
         ];
     }
 
@@ -560,6 +610,8 @@ class CourseResource extends Resource
             'edit' => Pages\EditCourse::route('/{record}/edit'),
             'view-unit' => Pages\ViewUnit::route('/{record}/units/{unit}'),
             'lessons.view' => Pages\ViewLesson::route('/{record}/lessons/{lesson}'),
+            'knowledge-base' => Pages\ManageKnowledgeBase::route('/{record}/knowledge-base'), // Add this line
+
         ];
     }
 

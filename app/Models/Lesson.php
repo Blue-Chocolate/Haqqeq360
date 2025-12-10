@@ -31,11 +31,16 @@ class Lesson extends Model
         return $this->hasMany(Assignment::class);
     }
 
-    // FIX — safest correct way to get course of a lesson in polymorphic setup
+    // Get the course through the unit relationship
     public function course()
     {
-        return $this->unit->unitable instanceof Course
-            ? $this->unit->unitable
-            : null;
+        return $this->hasOneThrough(
+            Course::class,
+            Unit::class,
+            'id',        // Foreign key on units table
+            'id',        // Foreign key on courses table
+            'unit_id',   // Local key on lessons table
+            'course_id'  // Local key on units table
+        );
     }
 }

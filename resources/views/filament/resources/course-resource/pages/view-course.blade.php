@@ -17,7 +17,8 @@
             @if($record->units()->count() > 0)
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                     @foreach($record->units()->orderBy('order')->get() as $unit)
-<a href="{{ \App\Filament\Resources\CourseResource::getUrl('view-unit', ['record' => $record->id, 'unit' => $unit->id]) }}"                           class="block p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-transparent hover:border-primary-500 hover:shadow-md transition-all duration-200">
+                        <a href="{{ \App\Filament\Resources\CourseResource::getUrl('view-unit', ['record' => $record->id, 'unit' => $unit->id]) }}"
+                           class="block p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border-2 border-transparent hover:border-primary-500 hover:shadow-md transition-all duration-200">
                             <div class="flex items-start justify-between">
                                 <div class="flex-1">
                                     <div class="flex items-center gap-2 mb-2">
@@ -93,10 +94,12 @@
                 <div class="space-y-4">
                     @php
                         $totalUnits = $record->units()->count();
-                        $totalLessons = $record->lessons()->count();
-                        $totalAssignments = $record->assignments()->count();
+                        $totalLessons = $record->units()->withCount('lessons')->get()->sum('lessons_count');
+                        $totalAssignments = \App\Models\Assignment::whereHas('lesson.unit', function($query) use ($record) {
+                            $query->where('course_id', $record->id);
+                        })->count();
                         $enrolledCount = $record->enrollments()->count();
-                        $seatsProgress = $totalUnits > 0 ? ($enrolledCount / $record->seats) * 100 : 0;
+                        $seatsProgress = $record->seats > 0 ? ($enrolledCount / $record->seats) * 100 : 0;
                     @endphp
 
                     <div>

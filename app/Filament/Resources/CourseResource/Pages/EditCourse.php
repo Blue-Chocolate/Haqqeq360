@@ -13,6 +13,12 @@ class EditCourse extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
+            Actions\Action::make('knowledge_base')
+                ->label('Knowledge Base')
+                ->icon('heroicon-o-document-text')
+                ->color('info')
+                ->url(fn () => static::getResource()::getUrl('knowledge-base', ['record' => $this->record])),
+            
             Actions\ViewAction::make(),
             
             Actions\Action::make('publish')

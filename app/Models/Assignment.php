@@ -3,34 +3,38 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Assignment extends Model
 {
-    use HasFactory, SoftDeletes;
+    use SoftDeletes;
 
     protected $fillable = [
-        'course_id',
-        'lesson_id',
         'title',
         'description',
         'due_date',
         'max_score',
+        'course_id',
+        'unit_id',
+        'lesson_id',
         'attachment_path',
         'published',
-        'unit_id',
     ];
 
     protected $casts = [
         'due_date' => 'datetime',
-        'max_score' => 'decimal:2',
         'published' => 'boolean',
+        'max_score' => 'decimal:2',
     ];
 
     public function course()
     {
         return $this->belongsTo(Course::class);
+    }
+
+    public function unit()
+    {
+        return $this->belongsTo(Unit::class);
     }
 
     public function lesson()
@@ -41,9 +45,5 @@ class Assignment extends Model
     public function submissions()
     {
         return $this->hasMany(Submission::class);
-    }
-    public function unit()
-    {
-        return $this->belongsTo(Unit::class);
     }
 }

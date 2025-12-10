@@ -1,6 +1,7 @@
 @php
     use App\Filament\Resources\CourseResource;
 @endphp
+
 <x-filament-panels::page>
     <div class="space-y-6">
         {{-- Lesson Header Card --}}
@@ -158,13 +159,6 @@
                                         </div>
                                     @endif
 
-                                    @if($assignment->assignment_type)
-                                        <div class="flex items-center gap-2 text-gray-600 dark:text-gray-400">
-                                            <x-heroicon-o-tag class="w-4 h-4" />
-                                            <span>{{ ucfirst(str_replace('_', ' ', $assignment->assignment_type)) }}</span>
-                                        </div>
-                                    @endif
-
                                     @php
                                         $submissionCount = $assignment->submissions()->count();
                                     @endphp
@@ -210,7 +204,7 @@
         <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <div class="flex items-center justify-between gap-4">
                 @if($previousLesson)
-                    <a href="{{ \App\Filament\Resources\CourseResource::getUrl('lessons.view', ['record' => $record->id, 'lesson' => $previousLesson->id]) }}"
+                    <a href="{{ CourseResource::getUrl('lessons.view', ['record' => $record->id, 'lesson' => $previousLesson->id]) }}"
                        class="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group flex-1">
                         <x-heroicon-o-arrow-left class="w-5 h-5 text-gray-400 group-hover:text-primary-600" />
                         <div class="text-left">
@@ -223,7 +217,7 @@
                 @endif
 
                 @if($nextLesson)
-                    <a href="{{ \App\Filament\Resources\CourseResource::getUrl('lessons.view', ['record' => $record->id, 'lesson' => $nextLesson->id]) }}"
+                    <a href="{{ CourseResource::getUrl('lessons.view', ['record' => $record->id, 'lesson' => $nextLesson->id]) }}"
                        class="flex items-center gap-3 px-4 py-3 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-lg transition-colors group flex-1 justify-end">
                         <div class="text-right">
                             <p class="text-xs text-gray-500 dark:text-gray-400">Next Lesson</p>

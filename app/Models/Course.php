@@ -62,10 +62,10 @@ class Course extends Model
         return $this->morphMany(Plan::class, 'planable');
     }
 
-    public function units(): MorphMany
-    {
-        return $this->morphMany(Unit::class, 'unitable')->orderBy('order');
-    }
+    // public function units(): MorphMany
+    // {
+    //     return $this->morphMany(Unit::class, 'unitable')->orderBy('order');
+    // }
 
     // FIXED — avoid polymorphic hasManyThrough
     public function lessons()
@@ -87,5 +87,14 @@ class Course extends Model
     {
         $enrollmentsCount = $this->enrollments_count ?? $this->enrollments()->count();
         return max(0, $this->seats - $enrollmentsCount);
+    }
+        public function units()
+    {
+        return $this->hasMany(Unit::class)->orderBy('order');
+    }
+
+        public function knowledgeBaseArticles()
+    {
+        return $this->hasMany(KnowledgeBaseArticle::class)->orderBy('created_at', 'desc');
     }
 }

@@ -17,26 +17,19 @@ class ViewUnit extends Page
     public Course $record;
     public Unit $unit;
 
-    // Add this method to handle route model binding
-    // public function resolveRouteBinding($value, $field = null)
-    // {
-    //     return Course::findOrFail($value);
-    // }
-
-    // public function mount(int|string $record, int|string $unit): void
-    // {
-    //     // Load the course
-    //     $this->record = Course::findOrFail($record);
+    public function mount(int|string $record, int|string $unit): void
+    {
+        // Load the course
+        $this->record = Course::findOrFail($record);
         
-    //     // Load the unit - simplified query
-    //     $this->unit = Unit::where('id', $unit)
-    //         ->where('unitable_id', $record)
-    //         ->where('unitable_type', Course::class)
-    //         ->firstOrFail();
+        // Load the unit - simplified query using only course_id
+        $this->unit = Unit::where('id', $unit)
+            ->where('course_id', $record)
+            ->firstOrFail();
         
-    //     // Set authorization if needed
-    //     static::authorizeResourceAccess();
-    // }
+        // Set authorization if needed
+        static::authorizeResourceAccess();
+    }
 
     public function getTitle(): string | Htmlable
     {
@@ -56,6 +49,12 @@ class ViewUnit extends Page
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('knowledge_base')
+                ->label('Knowledge Base')
+                ->icon('heroicon-o-document-text')
+                ->color('info')
+                ->url(fn () => CourseResource::getUrl('knowledge-base', ['record' => $this->record->id])),
+            
             \Filament\Actions\Action::make('back')
                 ->label('Back to Course')
                 ->icon('heroicon-o-arrow-left')

@@ -74,7 +74,7 @@
             </h3>
             <div class="flex gap-2 overflow-x-auto pb-2">
                 @foreach($record->units()->orderBy('order')->get() as $otherUnit)
-                    <a href="{{ CourseResource::getUrl('units.view', ['record' => $record->id, 'unit' => $otherUnit->id]) }}"
+                    <a href="{{ CourseResource::getUrl('view-unit', ['record' => $record->id, 'unit' => $otherUnit->id]) }}"
                        class="flex-shrink-0 px-4 py-2 rounded-lg border-2 transition-all duration-200 {{ $otherUnit->id === $unit->id ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 font-semibold' : 'border-gray-200 dark:border-gray-700 hover:border-primary-300 text-gray-700 dark:text-gray-300' }}">
                         <span class="text-sm">Unit {{ $otherUnit->order }}</span>
                     </a>
@@ -167,9 +167,7 @@
 
                                 {{-- Action Buttons --}}
                                 <div class="flex-shrink-0 flex gap-2">
-                                    <a href="{{ \App\Filament\Resources\CourseResource::getUrl('lessons.view', ['record' => $record->id, 'lesson' => $lesson->id]) }}">
-    View Lesson
-</a>
+                                    <a href="{{ CourseResource::getUrl('lessons.view', ['record' => $record->id, 'lesson' => $lesson->id]) }}"
                                        class="inline-flex items-center justify-center w-8 h-8 rounded-lg text-gray-500 hover:text-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 transition-colors"
                                        title="View Lesson">
                                         <x-heroicon-s-eye class="w-4 h-4" />

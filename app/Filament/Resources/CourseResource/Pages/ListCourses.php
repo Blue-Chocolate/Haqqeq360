@@ -1,7 +1,5 @@
 <?php
 
-// app/Filament/Resources/CourseResource/Pages/ListCourses.php
-
 namespace App\Filament\Resources\CourseResource\Pages;
 
 use App\Filament\Resources\CourseResource;

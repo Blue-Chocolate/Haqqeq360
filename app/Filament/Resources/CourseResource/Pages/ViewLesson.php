@@ -17,6 +17,21 @@ class ViewLesson extends Page
     public Course $record;
     public Lesson $lesson;
 
+    public function mount(int|string $record, int|string $lesson): void
+    {
+        // Load the course
+        $this->record = Course::findOrFail($record);
+        
+        // Load the lesson with its unit, ensuring it belongs to the course
+        $this->lesson = Lesson::with('unit')
+            ->whereHas('unit', function ($query) use ($record) {
+                $query->where('course_id', $record);
+            })
+            ->findOrFail($lesson);
+        
+        // Set authorization if needed
+        static::authorizeResourceAccess();
+    }
 
     public function getTitle(): string | Htmlable
     {

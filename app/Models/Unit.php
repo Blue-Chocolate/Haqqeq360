@@ -13,13 +13,12 @@ class Unit extends Model
     protected $fillable = [
         'title',
         'order',
-        'unitable_id',
-        'unitable_type',
+        'course_id',
     ];
 
-    public function unitable()
+    public function course()
     {
-        return $this->morphTo();
+        return $this->belongsTo(Course::class);
     }
 
     public function lessons()

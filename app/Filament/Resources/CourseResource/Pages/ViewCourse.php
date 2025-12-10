@@ -1,5 +1,9 @@
 <?php
 
+// ============================================================================
+// ViewCourse.php
+// ============================================================================
+
 namespace App\Filament\Resources\CourseResource\Pages;
 
 use App\Filament\Resources\CourseResource;
@@ -54,7 +58,7 @@ class ViewCourse extends ViewRecord
                                 
                                 Components\TextEntry::make('lessons_count')
                                     ->label('Total Lessons')
-                                    ->state(fn ($record) => $record->lessons()->count())
+                                    ->state(fn ($record) => $record->units()->withCount('lessons')->get()->sum('lessons_count'))
                                     ->badge()
                                     ->color('success')
                                     ->icon('heroicon-o-academic-cap'),
@@ -143,6 +147,12 @@ class ViewCourse extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('knowledge_base')
+                ->label('Knowledge Base')
+                ->icon('heroicon-o-document-text')
+                ->color('info')
+                ->url(fn () => CourseResource::getUrl('knowledge-base', ['record' => $this->record])),
+            
             \Filament\Actions\EditAction::make(),
             \Filament\Actions\DeleteAction::make(),
         ];
