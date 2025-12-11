@@ -21,7 +21,7 @@ class DatabaseSeeder extends Seeder
         CategoriesSeeder::class,  // Second - needed for category_id
         CourseSeeder::class,      // Uses instructor_id
         BootcampSeeder::class,    // Uses instructor_id
-        ProgramsSeeder::class,    // Uses category_id
+        // ProgramsSeeder::class,    // Uses category_id
         EvaluationSeeder::class
     ]);
        User::factory()->create([

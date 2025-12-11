@@ -443,11 +443,11 @@ Route::middleware(['auth:sanctum'])->group(function () {
     });
 });
 
-use App\Http\Controllers\Api\AssignmentController\AssignmentController;
-Route::middleware('auth:sanctum')->group(function () {
-    Route::get('/assignments', [AssignmentController::class, 'index']);
-    Route::get('/assignments/{id}', [AssignmentController::class, 'show']);
-});
+// use App\Http\Controllers\Api\AssignmentController\AssignmentController;
+// Route::middleware('auth:sanctum')->group(function () {
+//     Route::get('/assignments', [AssignmentController::class, 'index']);
+//     Route::get('/assignments/{id}', [AssignmentController::class, 'show']);
+// });
 
 
 
@@ -465,4 +465,46 @@ Route::prefix('courses')->group(function () {
    Route::get('/{courseId}/units/{unitId}/lessons/{lessonId}', [CourseController::class, 'showLesson']);
 
     
+});
+
+
+use App\Http\Controllers\Api\AssignmentController\AssignmentController;
+use App\Http\Controllers\Api\SubmissionController\SubmissionController;
+
+// Assignment Routes (Student Access)
+Route::middleware(['auth:sanctum'])->group(function () {
+    Route::prefix('courses/{courseId}/units/{unitId}/lessons/{lessonId}/assignments')->group(function () {
+        // Get all assignments for a lesson
+        Route::get('/', [AssignmentController::class, 'getByLesson']);
+        
+        // Get specific assignment
+        Route::get('/{id}', [AssignmentController::class, 'show']);
+        
+        // Submit assignment
+        Route::post('/{id}/submit', [AssignmentController::class, 'submit']);
+        
+        // Resubmit assignment
+        Route::put('/{id}/resubmit', [AssignmentController::class, 'resubmit']);
+    });
+});
+
+// Submission Routes (Student Access)
+Route::middleware(['auth:sanctum'])->prefix('submissions')->group(function () {
+    // Get all user's submissions
+    Route::get('/my-submissions', [SubmissionController::class, 'mySubmissions']);
+    
+    // Get specific submission
+    Route::get('/{id}', [SubmissionController::class, 'show']);
+    
+    // Delete submission (before grading)
+    Route::delete('/{id}', [SubmissionController::class, 'destroy']);
+    
+    // Get submission statistics
+    Route::get('/statistics/overview', [SubmissionController::class, 'getStatistics']);
+    
+    // Get graded submissions
+    Route::get('/graded/list', [SubmissionController::class, 'getGradedSubmissions']);
+    
+    // Get pending submissions
+    Route::get('/pending/list', [SubmissionController::class, 'getPendingSubmissions']);
 });

@@ -117,12 +117,21 @@ class TestController extends Controller
     }
 
     /**
-     * Get a specific test with questions (without revealing correct answers)
+     * Get a specific test with all questions and complete details
      */
     public function show(int $id): JsonResponse
     {
-        $test = Test::with(['questions.options', 'testable'])
-            ->findOrFail($id);
+        // Eager load all relationships to get complete test data
+        $test = Test::with([
+            'questions' => function ($query) {
+                $query->orderBy('order', 'asc');
+            },
+            'questions.options',
+            'testable',
+            'course',
+            'unit',
+            'lesson'
+        ])->findOrFail($id);
 
         // Check if test is available
         if (!$test->isAvailable()) {
@@ -133,16 +142,97 @@ class TestController extends Controller
         }
 
         // Check if user can still attempt this test
-        if (!$test->canUserAttempt(auth()->id())) {
+        $userId = auth()->id();
+        if (!$test->canUserAttempt($userId)) {
             return response()->json([
                 'success' => false,
                 'message' => 'You have reached the maximum number of attempts for this test.',
             ], 403);
         }
 
+        // Get user's previous attempts for context
+        $userAttempts = $test->attempts()
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
         return response()->json([
             'success' => true,
-            'data' => new TestDetailResource($test),
+            'data' => [
+                // Test basic information
+                'id' => $test->id,
+                'title' => $test->title,
+                'description' => $test->description,
+                
+                // Polymorphic relation
+                // 'testable_type' => $test->testable_type,
+                // 'testable_id' => $test->testable_id,
+                // 'testable' => $test->testable,
+                
+                // Test settings
+                'duration_minutes' => $test->duration_minutes,
+                'passing_score' => $test->passing_score,
+                'max_attempts' => $test->max_attempts,
+                'shuffle_questions' => $test->shuffle_questions,
+                'show_correct_answers' => $test->show_correct_answers,
+                'show_results_immediately' => $test->show_results_immediately,
+                
+                // Scheduling
+                'available_from' => $test->available_from,
+                'available_until' => $test->available_until,
+                'is_active' => $test->is_active,
+                
+                // Related entities
+                'course_id' => $test->course_id,
+                'course' => $test->course,
+                'unit_id' => $test->unit_id,
+                'unit' => $test->unit,
+                'lesson_id' => $test->lesson_id,
+                'lesson' => $test->lesson,
+                
+                // Questions with all details
+                'questions' => $test->questions->map(function ($question) use ($test) {
+                    return [
+                        'id' => $question->id,
+                        'type' => $question->type,
+                        'question_text' => $question->question_text,
+                        'explanation' => $question->explanation,
+                        'points' => $question->points,
+                        'order' => $question->order,
+                        'is_required' => $question->is_required,
+                        // Only show options for MCQ and True/False questions
+                        'options' => in_array($question->type, ['mcq', 'true_false']) 
+                            ? $question->options->map(function ($option) use ($test) {
+                                return [
+                                    'id' => $option->id,
+                                    'option_text' => $option->option_text,
+                                    // Only reveal correct answer if test settings allow
+                                    // and this is not during an active attempt
+                                    'is_correct' => $test->show_correct_answers ? $option->is_correct : null,
+                                    'order' => $option->order ?? 0,
+                                ];
+                            })
+                            : null,
+                        'created_at' => $question->created_at,
+                        'updated_at' => $question->updated_at,
+                    ];
+                }),
+                
+                // Statistics
+                'total_questions' => $test->questions->count(),
+                'total_points' => $test->questions->sum('points'),
+                
+                // User attempt information
+                'user_attempts_count' => $userAttempts->count(),
+                'user_attempts_remaining' => $test->max_attempts - $userAttempts->count(),
+                'can_attempt' => $test->canUserAttempt($userId),
+                'best_score' => $userAttempts->max('score'),
+                'best_percentage' => $userAttempts->max('percentage'),
+                'has_passed' => $userAttempts->contains('passed', true),
+                
+                // Timestamps
+                'created_at' => $test->created_at,
+            ],
         ]);
     }
 
